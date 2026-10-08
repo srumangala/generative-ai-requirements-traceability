@@ -15,4 +15,4 @@ class Requirement(Base):
         index=True,
     )
 
-    text: Mapped[str] = mapped_column(Text)
+    description: Mapped[str] = mapped_column(Text)
