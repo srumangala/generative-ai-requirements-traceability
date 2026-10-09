@@ -114,3 +114,27 @@ async def upload_test_cases(
         "created_items": created_test_cases,
         "skipped_ids": skipped_ids,
     }
+
+@router.delete("/{test_case_id}")
+def delete_test_case(
+    test_case_id: str,
+    db: Session = Depends(get_db),
+):
+    test_case = (
+        db.query(TestCase)
+        .filter(TestCase.test_case_id == test_case_id)
+        .first()
+    )
+
+    if not test_case:
+        raise HTTPException(
+            status_code=404,
+            detail="Test case not found.",
+        )
+
+    db.delete(test_case)
+    db.commit()
+
+    return {
+        "message": f"Test case {test_case_id} deleted successfully."
+    }

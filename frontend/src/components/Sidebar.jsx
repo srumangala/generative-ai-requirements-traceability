@@ -2,7 +2,7 @@ import "./Sidebar.css";
 
 function Sidebar({ activePage, setActivePage }) {
   const menuItems = [
-    { id: "data", label: "Data" },
+    { id: "dashboard", label: "Dashboard" },
     { id: "requirements", label: "Requirements" },
     { id: "tests", label: "Test Cases" },
     { id: "traceability", label: "Traceability" },

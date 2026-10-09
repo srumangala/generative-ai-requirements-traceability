@@ -106,3 +106,27 @@ async def upload_requirements(
         "created_items": created_requirements,
         "skipped_ids": skipped_ids,
     }
+
+@router.delete("/{requirement_id}")
+def delete_requirement(
+    requirement_id: str,
+    db: Session = Depends(get_db),
+):
+    requirement = (
+        db.query(Requirement)
+        .filter(Requirement.requirement_id == requirement_id)
+        .first()
+    )
+
+    if not requirement:
+        raise HTTPException(
+            status_code=404,
+            detail="Requirement not found.",
+        )
+
+    db.delete(requirement)
+    db.commit()
+
+    return {
+        "message": f"Requirement {requirement_id} deleted successfully."
+    }

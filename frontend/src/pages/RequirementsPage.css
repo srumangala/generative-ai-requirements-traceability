@@ -1,47 +1,451 @@
 .requirements-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* PAGE HEADER */
+
+.requirements-page > h1 {
+  margin: 0 0 32px;
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+}
+
+
+/* REQUIREMENT SELECTOR */
+
+.requirement-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  max-width: 500px;
+  margin-bottom: 24px;
+}
+
+.requirement-selector label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.requirement-selector select {
+  width: 100%;
+  padding: 11px 14px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: white;
+  color: #111827;
+
+  font-size: 15px;
+  outline: none;
+}
+
+.requirement-selector select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+
+/* SELECTED REQUIREMENT */
+
+.requirement-card {
+  padding: 22px 24px;
+
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  margin-bottom: 12px;
+}
+
+.requirement-card h3 {
+  margin: 0 0 10px;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  color: #4f46e5;
+}
+
+.requirement-card p {
+  margin: 0;
+
+  font-size: 15px;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.requirement-actions {
+  display: flex;
+  gap: 10px;
+
+  margin-bottom: 36px;
+}
+
+.requirement-actions button {
+  padding: 10px 16px;
+
+  border: none;
+  border-radius: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.requirement-actions button:first-child {
+  background: #4f46e5;
+  color: white;
+}
+
+.requirement-actions button:first-child:hover {
+  background: #4338ca;
+}
+
+.requirement-actions button:last-child {
+  background: white;
+  color: #374151;
+
+  border: 1px solid #d1d5db;
+}
+
+.requirement-actions button:last-child:hover {
+  background: #f9fafb;
+}
+
+
+/* REQUIREMENTS SECTION */
+
+.data-section {
+  margin-top: 36px;
+}
+
+.data-section > h2 {
+  margin: 0 0 14px;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+
+/* TABLE */
+
+.data-section table {
+  width: 100%;
+
+  border-collapse: separate;
+  border-spacing: 0;
+
+  background: white;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  overflow: hidden;
+}
+
+.data-section th {
+  padding: 12px 16px;
+
+  background: #f9fafb;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  color: #6b7280;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.data-section td {
+  padding: 14px 16px;
+
+  border-bottom: 1px solid #f0f1f3;
+
+  color: #374151;
+  font-size: 14px;
+
+  vertical-align: middle;
+}
+
+.data-section tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-section tbody tr:hover {
+  background: #fafafa;
+}
+
+.data-section th:first-child,
+.data-section td:first-child {
+  width: 130px;
+}
+
+.data-section th:last-child,
+.data-section td:last-child {
+  width: 100px;
+  text-align: right;
+}
+
+
+/* DELETE BUTTON */
+
+.delete-button {
+  padding: 6px 10px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: transparent;
+  color: #dc2626;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background: #fef2f2;
+}
+
+
+/* ADD REQUIREMENT */
+
+.create-form {
+  margin-top: 16px;
+  padding: 20px;
+
+  background: white;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.create-form h3 {
+  margin: 0 0 18px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+
+  padding: 10px 12px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: white;
+
+  font: inherit;
+  font-size: 14px;
+
+  outline: none;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.form-field textarea {
+  min-height: 75px;
+  resize: vertical;
+}
+
+.add-button {
+  margin-top: 14px;
+
+  padding: 9px 15px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: #4f46e5;
+  color: white;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background: #4338ca;
+}
+
+.add-button:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+
+/* CSV UPLOAD */
+
+.upload-grid {
+  display: block;
+  margin: 0 0 36px;
+}
+
+.upload-card {
+  max-width: 500px;
+
+  padding: 20px;
+
+  background: white;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.upload-card h2 {
+  margin: 0 0 14px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.upload-card input[type="file"] {
+  margin-bottom: 14px;
+}
+
+.upload-card button {
+  padding: 8px 14px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: #4f46e5;
+  color: white;
+
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.upload-card button:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+
+/* MESSAGES */
+
+.error-message {
+  margin-top: 10px;
+
+  color: #b91c1c;
+
+  font-size: 13px;
+}
+
+.upload-message {
+  margin-top: 10px;
+
+  color: #4b5563;
+
+  font-size: 13px;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 800px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .requirement-actions {
+    flex-direction: column;
+  }
+
+  .requirement-actions button {
     width: 100%;
   }
-  
-  .requirement-selector {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-width: 400px;
-    margin-bottom: 24px;
-  }
-  
-  .requirement-selector label {
-    font-weight: 600;
-  }
-  
-  .requirement-selector select {
-    padding: 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 16px;
-  }
-  
-  .requirement-card {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 24px;
-    margin-bottom: 24px;
-  }
-  
-  .requirement-actions {
-    display: flex;
-    gap: 12px;
-  }
-  
-  .requirement-actions button {
-    padding: 10px 18px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  
-  .requirement-actions button:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
+}
+
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 16px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.form-divider::before,
+.form-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.upload-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-inline input[type="file"] {
+  flex: 1;
+  font-size: 14px;
+}
+
+.upload-button {
+  padding: 9px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: white;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.upload-button:hover {
+  background: #f9fafb;
+}
+
+.upload-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
