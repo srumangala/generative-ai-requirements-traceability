@@ -3,6 +3,7 @@ import "./TestCasesPage.css";
 
 function TestCasesPage() {
   const analysisSelectRef = useRef(null);
+  const selectAllRef = useRef(null);
   const [testCasesFile, setTestCasesFile] = useState(null);
   const [testCases, setTestCases] = useState([]);
   const [newTestCaseId, setNewTestCaseId] = useState("");
@@ -119,6 +120,9 @@ function TestCasesPage() {
       return;
     }
 
+    setSelectedBatchIds((currentIds) => currentIds.filter((id) => id !== testCaseId));
+    setSelectedTestCaseId((currentId) => currentId === testCaseId ? "" : currentId);
+    setBatchAnalysisMessage("");
     setTestCases((currentTestCases) =>
       currentTestCases.filter(
         (testCase) =>
@@ -137,19 +141,38 @@ function TestCasesPage() {
 
   const [selectedTestCaseId, setSelectedTestCaseId] = useState("");
   const [selectedBatchIds, setSelectedBatchIds] = useState([]);
+  const [batchAnalysisMessage, setBatchAnalysisMessage] = useState("");
 
   const selectedTestCase = testCases.find(
     (testCase) => testCase.test_case_id === selectedTestCaseId
   );
 
+  const selectedBatchCases = testCases.filter((testCase) =>
+    selectedBatchIds.includes(testCase.test_case_id)
+  );
+  const allSelected = testCases.length > 0 && selectedBatchCases.length === testCases.length;
+  const partiallySelected = selectedBatchCases.length > 0 && !allSelected;
+
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = partiallySelected;
+  }, [partiallySelected]);
+
   function handleBatchSelection(testCaseId) {
-    if (selectedBatchIds.includes(testCaseId)) {
-      setSelectedBatchIds(
-        selectedBatchIds.filter((id) => id !== testCaseId)
-      );
-    } else {
-      setSelectedBatchIds([...selectedBatchIds, testCaseId]);
-    }
+    setSelectedBatchIds((currentIds) => currentIds.includes(testCaseId)
+      ? currentIds.filter((id) => id !== testCaseId)
+      : [...currentIds, testCaseId]);
+    setBatchAnalysisMessage("");
+  }
+
+  function handleSelectAll() {
+    setSelectedBatchIds(allSelected ? [] : testCases.map((testCase) => testCase.test_case_id));
+    setBatchAnalysisMessage("");
+  }
+
+  function handleAnalyseSelectedTestCases() {
+    if (selectedBatchCases.length === 0) return;
+    // Connect the batch API here, sending selectedBatchCases.map(item => item.test_case_id).
+    setBatchAnalysisMessage("AI analysis is not available yet.");
   }
 
   return (
@@ -203,10 +226,34 @@ function TestCasesPage() {
 
       <section className="data-section">
         <h2>Test Cases</h2>
+        <div className="test-cases-toolbar">
+          <span className="selection-count" role="status">
+            {selectedBatchCases.length} selected
+          </span>
+          <button
+            onClick={handleAnalyseSelectedTestCases}
+            disabled={selectedBatchCases.length === 0}
+          >
+            Analyse with AI
+          </button>
+        </div>
+        {batchAnalysisMessage && (
+          <p className="batch-analysis-message" role="status">{batchAnalysisMessage}</p>
+        )}
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
+                <th className="selection-column">
+                  <input
+                    ref={selectAllRef}
+                    type="checkbox"
+                    aria-label="Select all test cases"
+                    checked={allSelected}
+                    disabled={testCases.length === 0}
+                    onChange={handleSelectAll}
+                  />
+                </th>
                 <th>ID</th>
                 <th>Title</th>
                 <th>Description</th>
@@ -216,7 +263,18 @@ function TestCasesPage() {
 
             <tbody>
               {testCases.map((testCase) => (
-                <tr key={testCase.test_case_id}>
+                <tr
+                  key={testCase.test_case_id}
+                  className={selectedBatchIds.includes(testCase.test_case_id) ? "is-selected" : ""}
+                >
+                  <td className="selection-column">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select test case ${testCase.test_case_id}`}
+                      checked={selectedBatchIds.includes(testCase.test_case_id)}
+                      onChange={() => handleBatchSelection(testCase.test_case_id)}
+                    />
+                  </td>
                   <td>{testCase.test_case_id}</td>
                   <td>{testCase.title}</td>
                   <td>{testCase.description}</td>
@@ -328,44 +386,6 @@ function TestCasesPage() {
           )}
         </div>
 
-      </section>
-      <section className="batch-analysis-section">
-        <h2>Batch Analysis</h2>
-
-        <p>
-          Select multiple test cases to analyse and improve together.
-        </p>
-
-        <div className="test-case-list">
-          {testCases.map((testCase) => (
-            <label
-              key={testCase.test_case_id}
-              className="test-case-row"
-            >
-              <input
-                type="checkbox"
-                checked={selectedBatchIds.includes(testCase.test_case_id)}
-                onChange={() =>
-                  handleBatchSelection(testCase.test_case_id)
-                }
-              />
-
-              <div>
-                <strong>
-                  {testCase.test_case_id} - {testCase.title}
-                </strong>
-                <p>{testCase.description}</p>
-              </div>
-            </label>
-          ))}
-        </div>
-
-        <button
-          className="primary-button"
-          disabled={selectedBatchIds.length === 0}
-        >
-          Analyse Selected Test Cases
-        </button>
       </section>
     </div>
   );

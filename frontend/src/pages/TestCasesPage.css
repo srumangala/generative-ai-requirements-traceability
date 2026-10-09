@@ -1,4 +1,11 @@
-.test-case-list { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
-.test-case-row { display: flex; align-items: flex-start; gap: 12px; padding: 16px; cursor: pointer; }
-.test-case-row input { margin-top: 5px; }
-.test-case-row p { margin: 4px 0 0; color: var(--muted); }
+.test-cases-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.selection-count { color: var(--muted); font-size: 14px; }
+.batch-analysis-message { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+.test-cases-page .data-section .selection-column { width: 48px; text-align: center; }
+.test-cases-page .data-section th:nth-child(2), .test-cases-page .data-section td:nth-child(2) { width: 100px; }
+.selection-column input { width: 16px; height: 16px; margin: 0; cursor: pointer; vertical-align: middle; }
+.selection-column input:disabled { cursor: not-allowed; }
+.test-cases-page .data-section tbody tr.is-selected { background: #eef2ff; }
+@media (max-width: 800px) {
+  .test-cases-page .data-section th:nth-child(2), .test-cases-page .data-section td:nth-child(2) { width: 80px; }
+}

@@ -1,1 +1,11 @@
-/* Shared page, selector, card, table, and form styles are defined in App.css. */
+.requirements-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.requirements-page .selection-count { color: var(--muted); font-size: 14px; }
+.requirements-page .batch-analysis-message { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+.requirements-page .data-section .selection-column { width: 48px; text-align: center; }
+.requirements-page .data-section th:nth-child(2), .requirements-page .data-section td:nth-child(2) { width: 100px; }
+.requirements-page .selection-column input { width: 16px; height: 16px; margin: 0; cursor: pointer; vertical-align: middle; }
+.requirements-page .selection-column input:disabled { cursor: not-allowed; }
+.requirements-page .data-section tbody tr.is-selected { background: #eef2ff; }
+@media (max-width: 800px) {
+  .requirements-page .data-section th:nth-child(2), .requirements-page .data-section td:nth-child(2) { width: 80px; }
+}

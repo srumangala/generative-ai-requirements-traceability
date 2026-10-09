@@ -23,14 +23,13 @@
 .form-field, .requirement-selector, .test-case-selector, .traceability-filter { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .form-field label, .requirement-selector label, .test-case-selector label, .traceability-filter label { font-size: 14px; font-weight: 600; color: #374151; }
 .requirement-selector, .test-case-selector, .traceability-filter { max-width: 500px; margin-bottom: 24px; }
-.upload-card, .create-form, .requirement-card, .test-case-card, .test-case-row, .trace-link-card, .chat-window, .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+.upload-card, .create-form, .requirement-card, .test-case-card, .trace-link-card, .chat-window, .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
 .requirement-card, .test-case-card { margin-bottom: 16px; }
 .requirement-card h3, .test-case-card h3 { color: var(--primary); margin-bottom: 10px; }
 .requirement-card p, .test-case-card p { color: #374151; margin: 10px 0 0; }
 .requirement-actions, .test-case-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .data-section { margin-top: 36px; }
-.single-analysis-section, .batch-analysis-section { margin-bottom: 36px; }
-.batch-analysis-section { margin-top: 36px; }
+.single-analysis-section { margin-bottom: 36px; }
 .table-scroll { overflow-x: auto; border-radius: var(--radius); }
 .table-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; white-space: nowrap; }
 .content .table-actions button { padding: 6px 10px; font-size: 13px; }

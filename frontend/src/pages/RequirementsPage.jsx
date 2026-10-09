@@ -3,6 +3,7 @@ import "./RequirementsPage.css";
 
 function RequirementsPage() {
   const analysisSelectRef = useRef(null);
+  const selectAllRef = useRef(null);
   const [requirements, setRequirements] = useState([]);
   const [requirementsFile, setRequirementsFile] = useState(null);
   const [newRequirementId, setNewRequirementId] = useState("");
@@ -10,6 +11,8 @@ function RequirementsPage() {
   const [requirementError, setRequirementError] = useState("");
   const [requirementsUploadMessage, setRequirementsUploadMessage] = useState("");
   const [selectedRequirementId, setSelectedRequirementId] = useState("");
+  const [selectedBatchIds, setSelectedBatchIds] = useState([]);
+  const [batchAnalysisMessage, setBatchAnalysisMessage] = useState("");
   const selectedRequirement = requirements.find(
     (requirement) => requirement.requirement_id === selectedRequirementId
   );
@@ -98,6 +101,34 @@ function RequirementsPage() {
     setRequirementsFile(null);
   }
 
+  const selectedBatchRequirements = requirements.filter((requirement) =>
+    selectedBatchIds.includes(requirement.requirement_id)
+  );
+  const allSelected = requirements.length > 0 && selectedBatchRequirements.length === requirements.length;
+  const partiallySelected = selectedBatchRequirements.length > 0 && !allSelected;
+
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = partiallySelected;
+  }, [partiallySelected]);
+
+  function handleBatchSelection(requirementId) {
+    setSelectedBatchIds((currentIds) => currentIds.includes(requirementId)
+      ? currentIds.filter((id) => id !== requirementId)
+      : [...currentIds, requirementId]);
+    setBatchAnalysisMessage("");
+  }
+
+  function handleSelectAll() {
+    setSelectedBatchIds(allSelected ? [] : requirements.map((requirement) => requirement.requirement_id));
+    setBatchAnalysisMessage("");
+  }
+
+  function handleAnalyseSelectedRequirements() {
+    if (selectedBatchRequirements.length === 0) return;
+    // Connect the batch API here, sending selectedBatchRequirements.map(item => item.requirement_id).
+    setBatchAnalysisMessage("AI analysis is not available yet.");
+  }
+
   function handleAnalyseRequirement(requirementId) {
     // Connect the analysis API here when available; both buttons use this handler.
     setSelectedRequirementId(requirementId);
@@ -126,6 +157,9 @@ function RequirementsPage() {
       return;
     }
 
+    setSelectedBatchIds((currentIds) => currentIds.filter((id) => id !== requirementId));
+    setSelectedRequirementId((currentId) => currentId === requirementId ? "" : currentId);
+    setBatchAnalysisMessage("");
     setRequirements((currentRequirements) =>
       currentRequirements.filter(
         (requirement) =>
@@ -184,10 +218,34 @@ function RequirementsPage() {
 
       <section className="data-section">
         <h2>Requirements</h2>
+        <div className="requirements-toolbar">
+          <span className="selection-count" role="status">
+            {selectedBatchRequirements.length} selected
+          </span>
+          <button
+            onClick={handleAnalyseSelectedRequirements}
+            disabled={selectedBatchRequirements.length === 0}
+          >
+            Analyse with AI
+          </button>
+        </div>
+        {batchAnalysisMessage && (
+          <p className="batch-analysis-message" role="status">{batchAnalysisMessage}</p>
+        )}
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
+                <th className="selection-column">
+                  <input
+                    ref={selectAllRef}
+                    type="checkbox"
+                    aria-label="Select all requirements"
+                    checked={allSelected}
+                    disabled={requirements.length === 0}
+                    onChange={handleSelectAll}
+                  />
+                </th>
                 <th>ID</th>
                 <th>Requirement</th>
                 <th>Actions</th>
@@ -196,7 +254,18 @@ function RequirementsPage() {
 
             <tbody>
               {requirements.map((requirement) => (
-                <tr key={requirement.requirement_id}>
+                <tr
+                  key={requirement.requirement_id}
+                  className={selectedBatchIds.includes(requirement.requirement_id) ? "is-selected" : ""}
+                >
+                  <td className="selection-column">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select requirement ${requirement.requirement_id}`}
+                      checked={selectedBatchIds.includes(requirement.requirement_id)}
+                      onChange={() => handleBatchSelection(requirement.requirement_id)}
+                    />
+                  </td>
                   <td>{requirement.requirement_id}</td>
                   <td>{requirement.description}</td>
                   <td>
