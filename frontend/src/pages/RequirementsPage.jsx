@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import "./RequirementsPage.css";
 
 function RequirementsPage() {
-  const analysisSelectRef = useRef(null);
   const selectAllRef = useRef(null);
   const [requirements, setRequirements] = useState([]);
   const [requirementsFile, setRequirementsFile] = useState(null);
@@ -10,12 +9,9 @@ function RequirementsPage() {
   const [newRequirementDescription, setNewRequirementDescription] = useState("");
   const [requirementError, setRequirementError] = useState("");
   const [requirementsUploadMessage, setRequirementsUploadMessage] = useState("");
-  const [selectedRequirementId, setSelectedRequirementId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedBatchIds, setSelectedBatchIds] = useState([]);
   const [batchAnalysisMessage, setBatchAnalysisMessage] = useState("");
-  const selectedRequirement = requirements.find(
-    (requirement) => requirement.requirement_id === selectedRequirementId
-  );
 
   useEffect(() => {
     fetch("http://localhost:8000/requirements")
@@ -101,11 +97,20 @@ function RequirementsPage() {
     setRequirementsFile(null);
   }
 
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredRequirements = requirements.filter((requirement) =>
+    requirement.requirement_id.toLowerCase().includes(normalizedQuery) ||
+    (requirement.description || "").toLowerCase().includes(normalizedQuery)
+  );
   const selectedBatchRequirements = requirements.filter((requirement) =>
     selectedBatchIds.includes(requirement.requirement_id)
   );
-  const allSelected = requirements.length > 0 && selectedBatchRequirements.length === requirements.length;
-  const partiallySelected = selectedBatchRequirements.length > 0 && !allSelected;
+  const visibleSelectedCount = filteredRequirements.filter((requirement) =>
+    selectedBatchIds.includes(requirement.requirement_id)
+  ).length;
+  const hiddenSelectedCount = selectedBatchRequirements.length - visibleSelectedCount;
+  const allSelected = filteredRequirements.length > 0 && visibleSelectedCount === filteredRequirements.length;
+  const partiallySelected = visibleSelectedCount > 0 && !allSelected;
 
   useEffect(() => {
     if (selectAllRef.current) selectAllRef.current.indeterminate = partiallySelected;
@@ -119,7 +124,10 @@ function RequirementsPage() {
   }
 
   function handleSelectAll() {
-    setSelectedBatchIds(allSelected ? [] : requirements.map((requirement) => requirement.requirement_id));
+    const visibleIds = filteredRequirements.map((requirement) => requirement.requirement_id);
+    setSelectedBatchIds((currentIds) => allSelected
+      ? currentIds.filter((id) => !visibleIds.includes(id))
+      : [...new Set([...currentIds, ...visibleIds])]);
     setBatchAnalysisMessage("");
   }
 
@@ -130,10 +138,13 @@ function RequirementsPage() {
   }
 
   function handleAnalyseRequirement(requirementId) {
-    // Connect the analysis API here when available; both buttons use this handler.
-    setSelectedRequirementId(requirementId);
-    analysisSelectRef.current?.focus({ preventScroll: true });
-    analysisSelectRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Connect the individual analysis API here, using requirementId.
+    setBatchAnalysisMessage(`AI analysis for ${requirementId} is not available yet.`);
+  }
+
+  function handleGenerateTestCases(requirementId) {
+    // Connect the test-case generation API here, using requirementId.
+    setBatchAnalysisMessage(`Test case generation for ${requirementId} is not available yet.`);
   }
 
   async function handleDeleteRequirement(requirementId) {
@@ -158,7 +169,6 @@ function RequirementsPage() {
     }
 
     setSelectedBatchIds((currentIds) => currentIds.filter((id) => id !== requirementId));
-    setSelectedRequirementId((currentId) => currentId === requirementId ? "" : currentId);
     setBatchAnalysisMessage("");
     setRequirements((currentRequirements) =>
       currentRequirements.filter(
@@ -172,55 +182,28 @@ function RequirementsPage() {
     <div className="requirements-page">
       <h1>Requirements Analysis</h1>
 
-      <div className="requirement-selector">
-        <label htmlFor="requirement-select">
-          Select a requirement
-        </label>
-
-        <select
-          id="requirement-select"
-          ref={analysisSelectRef}
-          value={selectedRequirementId}
-          onChange={(event) =>
-            setSelectedRequirementId(event.target.value)
-          }
-        >
-          <option value="">Choose a requirement</option>
-
-          {requirements.map((requirement) => (
-            <option key={requirement.requirement_id} value={requirement.requirement_id}>
-              {requirement.requirement_id}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {selectedRequirement && (
-        <>
-          <div className="requirement-card">
-            <h3>{selectedRequirement.requirement_id}</h3>
-            <p>{selectedRequirement.description}</p>
-          </div>
-          <div className="requirement-actions">
-            <button
-              disabled={!selectedRequirement}
-              onClick={() => handleAnalyseRequirement(selectedRequirementId)}
-            >
-              Analyse with AI
-            </button>
-
-            <button disabled={!selectedRequirement}>
-              Generate Test Cases
-            </button>
-          </div>
-        </>
-      )}
-
       <section className="data-section">
         <h2>Requirements</h2>
+        <div className="requirements-search">
+          <label htmlFor="requirements-search">Search requirements</label>
+          <input
+            id="requirements-search"
+            type="search"
+            placeholder="Search by requirement ID or description..."
+            value={searchQuery}
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setBatchAnalysisMessage("");
+            }}
+          />
+          <span className="search-results-count" role="status">
+            {filteredRequirements.length} of {requirements.length} requirements
+          </span>
+        </div>
         <div className="requirements-toolbar">
           <span className="selection-count" role="status">
             {selectedBatchRequirements.length} selected
+            {hiddenSelectedCount > 0 && ` (${hiddenSelectedCount} hidden by search)`}
           </span>
           <button
             onClick={handleAnalyseSelectedRequirements}
@@ -240,20 +223,21 @@ function RequirementsPage() {
                   <input
                     ref={selectAllRef}
                     type="checkbox"
-                    aria-label="Select all requirements"
+                    aria-label="Select all matching requirements"
                     checked={allSelected}
-                    disabled={requirements.length === 0}
+                    disabled={filteredRequirements.length === 0}
                     onChange={handleSelectAll}
                   />
                 </th>
                 <th>ID</th>
                 <th>Requirement</th>
-                <th>Actions</th>
+                <th className="analysis-column">Analyse</th>
+                <th className="generation-column">Generate Test Cases</th>
+                <th className="delete-column">Actions</th>
               </tr>
             </thead>
-
             <tbody>
-              {requirements.map((requirement) => (
+              {filteredRequirements.map((requirement) => (
                 <tr
                   key={requirement.requirement_id}
                   className={selectedBatchIds.includes(requirement.requirement_id) ? "is-selected" : ""}
@@ -268,28 +252,39 @@ function RequirementsPage() {
                   </td>
                   <td>{requirement.requirement_id}</td>
                   <td>{requirement.description}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        className="analyse-button"
-                        onClick={() => handleAnalyseRequirement(requirement.requirement_id)}
-                      >
-                        Analyse
-                      </button>
-                      <button
-                        className="delete-button"
-                        onClick={() =>
-                          handleDeleteRequirement(
-                            requirement.requirement_id
-                          )
-                        }
-                      >
-                        Delete
-                      </button>
-                    </div>
+                  <td className="analysis-column">
+                    <button
+                      className="analyse-button"
+                      onClick={() => handleAnalyseRequirement(requirement.requirement_id)}
+                    >
+                      Analyse
+                    </button>
+                  </td>
+                  <td className="generation-column">
+                    <button
+                      className="generate-button"
+                      onClick={() => handleGenerateTestCases(requirement.requirement_id)}
+                    >
+                      Generate Test Cases
+                    </button>
+                  </td>
+                  <td className="delete-column">
+                    <button
+                      className="delete-button"
+                      onClick={() => handleDeleteRequirement(requirement.requirement_id)}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
+              {filteredRequirements.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="requirements-empty">
+                    {normalizedQuery ? "No requirements match your search." : "No requirements available."}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
