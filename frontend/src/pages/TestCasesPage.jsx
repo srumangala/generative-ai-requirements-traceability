@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import "./TestCasesPage.css";
 
 function TestCasesPage() {
-  const analysisSelectRef = useRef(null);
   const selectAllRef = useRef(null);
   const [testCasesFile, setTestCasesFile] = useState(null);
   const [testCases, setTestCases] = useState([]);
@@ -93,10 +92,8 @@ function TestCasesPage() {
   }
 
   function handleAnalyseTestCase(testCaseId) {
-    // Connect the analysis API here when available; both buttons use this handler.
-    setSelectedTestCaseId(testCaseId);
-    analysisSelectRef.current?.focus({ preventScroll: true });
-    analysisSelectRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Connect the individual analysis API here, using testCaseId.
+    setBatchAnalysisMessage(`AI analysis for ${testCaseId} is not available yet.`);
   }
 
   async function handleDeleteTestCase(testCaseId) {
@@ -121,7 +118,6 @@ function TestCasesPage() {
     }
 
     setSelectedBatchIds((currentIds) => currentIds.filter((id) => id !== testCaseId));
-    setSelectedTestCaseId((currentId) => currentId === testCaseId ? "" : currentId);
     setBatchAnalysisMessage("");
     setTestCases((currentTestCases) =>
       currentTestCases.filter(
@@ -139,19 +135,26 @@ function TestCasesPage() {
   }, []);
 
 
-  const [selectedTestCaseId, setSelectedTestCaseId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedBatchIds, setSelectedBatchIds] = useState([]);
   const [batchAnalysisMessage, setBatchAnalysisMessage] = useState("");
 
-  const selectedTestCase = testCases.find(
-    (testCase) => testCase.test_case_id === selectedTestCaseId
-  );
 
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredTestCases = testCases.filter((testCase) =>
+    testCase.test_case_id.toLowerCase().includes(normalizedQuery) ||
+    (testCase.title || "").toLowerCase().includes(normalizedQuery) ||
+    (testCase.description || "").toLowerCase().includes(normalizedQuery)
+  );
   const selectedBatchCases = testCases.filter((testCase) =>
     selectedBatchIds.includes(testCase.test_case_id)
   );
-  const allSelected = testCases.length > 0 && selectedBatchCases.length === testCases.length;
-  const partiallySelected = selectedBatchCases.length > 0 && !allSelected;
+  const visibleSelectedCount = filteredTestCases.filter((testCase) =>
+    selectedBatchIds.includes(testCase.test_case_id)
+  ).length;
+  const hiddenSelectedCount = selectedBatchCases.length - visibleSelectedCount;
+  const allSelected = filteredTestCases.length > 0 && visibleSelectedCount === filteredTestCases.length;
+  const partiallySelected = visibleSelectedCount > 0 && !allSelected;
 
   useEffect(() => {
     if (selectAllRef.current) selectAllRef.current.indeterminate = partiallySelected;
@@ -165,7 +168,10 @@ function TestCasesPage() {
   }
 
   function handleSelectAll() {
-    setSelectedBatchIds(allSelected ? [] : testCases.map((testCase) => testCase.test_case_id));
+    const visibleIds = filteredTestCases.map((testCase) => testCase.test_case_id);
+    setSelectedBatchIds((currentIds) => allSelected
+      ? currentIds.filter((id) => !visibleIds.includes(id))
+      : [...new Set([...currentIds, ...visibleIds])]);
     setBatchAnalysisMessage("");
   }
 
@@ -179,56 +185,28 @@ function TestCasesPage() {
     <div className="test-cases-page">
       <h1>Test Case Analysis</h1>
 
-      <section className="single-analysis-section">
-        <h2>Improve a Test Case</h2>
-
-        <div className="test-case-selector">
-          <label htmlFor="test-case-select">
-            Select a test case
-          </label>
-
-          <select
-            id="test-case-select"
-            ref={analysisSelectRef}
-            value={selectedTestCaseId}
-            onChange={(event) =>
-              setSelectedTestCaseId(event.target.value)
-            }
-          >
-            <option value="">Choose a test case</option>
-
-            {testCases.map((testCase) => (
-              <option key={testCase.test_case_id} value={testCase.test_case_id}>
-                {testCase.test_case_id} - {testCase.title}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {selectedTestCase && (
-          <>
-            <div className="test-case-card">
-              <h3>{selectedTestCase.test_case_id}</h3>
-              <strong>{selectedTestCase.title}</strong>
-              <p>{selectedTestCase.description}</p>
-            </div>
-            <div className="test-case-actions">
-              <button
-                disabled={!selectedTestCase}
-                onClick={() => handleAnalyseTestCase(selectedTestCaseId)}
-              >
-                Improve with AI
-              </button>
-            </div>
-          </>
-        )}
-      </section>
-
       <section className="data-section">
         <h2>Test Cases</h2>
+        <div className="test-cases-search">
+          <label htmlFor="test-cases-search">Search test cases</label>
+          <input
+            id="test-cases-search"
+            type="search"
+            placeholder="Search by test case ID, title, or description..."
+            value={searchQuery}
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setBatchAnalysisMessage("");
+            }}
+          />
+          <span className="search-results-count" role="status">
+            {filteredTestCases.length} of {testCases.length} test cases
+          </span>
+        </div>
         <div className="test-cases-toolbar">
           <span className="selection-count" role="status">
             {selectedBatchCases.length} selected
+            {hiddenSelectedCount > 0 && ` (${hiddenSelectedCount} hidden by search)`}
           </span>
           <button
             onClick={handleAnalyseSelectedTestCases}
@@ -248,9 +226,9 @@ function TestCasesPage() {
                   <input
                     ref={selectAllRef}
                     type="checkbox"
-                    aria-label="Select all test cases"
+                    aria-label="Select all matching test cases"
                     checked={allSelected}
-                    disabled={testCases.length === 0}
+                    disabled={filteredTestCases.length === 0}
                     onChange={handleSelectAll}
                   />
                 </th>
@@ -262,7 +240,7 @@ function TestCasesPage() {
             </thead>
 
             <tbody>
-              {testCases.map((testCase) => (
+              {filteredTestCases.map((testCase) => (
                 <tr
                   key={testCase.test_case_id}
                   className={selectedBatchIds.includes(testCase.test_case_id) ? "is-selected" : ""}
@@ -299,6 +277,13 @@ function TestCasesPage() {
                   </td>
                 </tr>
               ))}
+              {filteredTestCases.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="test-cases-empty">
+                    {normalizedQuery ? "No test cases match your search." : "No test cases available."}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
