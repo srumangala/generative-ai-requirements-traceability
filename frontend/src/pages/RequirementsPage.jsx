@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./RequirementsPage.css";
 
 function RequirementsPage() {
+  const analysisSelectRef = useRef(null);
   const [requirements, setRequirements] = useState([]);
   const [requirementsFile, setRequirementsFile] = useState(null);
   const [newRequirementId, setNewRequirementId] = useState("");
@@ -97,6 +98,13 @@ function RequirementsPage() {
     setRequirementsFile(null);
   }
 
+  function handleAnalyseRequirement(requirementId) {
+    // Connect the analysis API here when available; both buttons use this handler.
+    setSelectedRequirementId(requirementId);
+    analysisSelectRef.current?.focus({ preventScroll: true });
+    analysisSelectRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   async function handleDeleteRequirement(requirementId) {
     const confirmed = window.confirm(
       "Do you really want to delete this requirement?"
@@ -137,6 +145,7 @@ function RequirementsPage() {
 
         <select
           id="requirement-select"
+          ref={analysisSelectRef}
           value={selectedRequirementId}
           onChange={(event) =>
             setSelectedRequirementId(event.target.value)
@@ -159,7 +168,10 @@ function RequirementsPage() {
             <p>{selectedRequirement.description}</p>
           </div>
           <div className="requirement-actions">
-            <button disabled={!selectedRequirement}>
+            <button
+              disabled={!selectedRequirement}
+              onClick={() => handleAnalyseRequirement(selectedRequirementId)}
+            >
               Analyse with AI
             </button>
 
@@ -172,36 +184,46 @@ function RequirementsPage() {
 
       <section className="data-section">
         <h2>Requirements</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Requirement</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {requirements.map((requirement) => (
-              <tr key={requirement.requirement_id}>
-                <td>{requirement.requirement_id}</td>
-                <td>{requirement.description}</td>
-                <td>
-                  <button
-                    className="delete-button"
-                    onClick={() =>
-                      handleDeleteRequirement(
-                        requirement.requirement_id
-                      )
-                    }
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Requirement</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {requirements.map((requirement) => (
+                <tr key={requirement.requirement_id}>
+                  <td>{requirement.requirement_id}</td>
+                  <td>{requirement.description}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button
+                        className="analyse-button"
+                        onClick={() => handleAnalyseRequirement(requirement.requirement_id)}
+                      >
+                        Analyse
+                      </button>
+                      <button
+                        className="delete-button"
+                        onClick={() =>
+                          handleDeleteRequirement(
+                            requirement.requirement_id
+                          )
+                        }
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <div className="create-form">
           <h3>Add Requirement</h3>
 

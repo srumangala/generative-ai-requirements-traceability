@@ -1,16 +1,19 @@
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  margin: 0;
-  width: 100%;
-  min-height: 100%;
-}
-
-body {
+:root {
   font-family: Arial, sans-serif;
+  color: #111827;
   background: #f5f6f8;
+  font-synthesis: none;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --muted: #6b7280;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --radius: 12px;
 }
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; width: 100%; min-height: 100%; }
+body { min-width: 320px; line-height: 1.5; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+:focus-visible { outline: 3px solid #6366f1; outline-offset: 3px; }

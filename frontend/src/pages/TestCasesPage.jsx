@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./TestCasesPage.css";
 
 function TestCasesPage() {
+  const analysisSelectRef = useRef(null);
   const [testCasesFile, setTestCasesFile] = useState(null);
   const [testCases, setTestCases] = useState([]);
   const [newTestCaseId, setNewTestCaseId] = useState("");
@@ -90,6 +91,13 @@ function TestCasesPage() {
     setTestCasesFile(null);
   }
 
+  function handleAnalyseTestCase(testCaseId) {
+    // Connect the analysis API here when available; both buttons use this handler.
+    setSelectedTestCaseId(testCaseId);
+    analysisSelectRef.current?.focus({ preventScroll: true });
+    analysisSelectRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   async function handleDeleteTestCase(testCaseId) {
     const confirmed = window.confirm(
       "Do you really want to delete this test case?"
@@ -158,6 +166,7 @@ function TestCasesPage() {
 
           <select
             id="test-case-select"
+            ref={analysisSelectRef}
             value={selectedTestCaseId}
             onChange={(event) =>
               setSelectedTestCaseId(event.target.value)
@@ -181,7 +190,10 @@ function TestCasesPage() {
               <p>{selectedTestCase.description}</p>
             </div>
             <div className="test-case-actions">
-              <button disabled={!selectedTestCase}>
+              <button
+                disabled={!selectedTestCase}
+                onClick={() => handleAnalyseTestCase(selectedTestCaseId)}
+              >
                 Improve with AI
               </button>
             </div>
@@ -191,37 +203,47 @@ function TestCasesPage() {
 
       <section className="data-section">
         <h2>Test Cases</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Description</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {testCases.map((testCase) => (
-              <tr key={testCase.test_case_id}>
-                <td>{testCase.test_case_id}</td>
-                <td>{testCase.title}</td>
-                <td>{testCase.description}</td>
-
-                <td>
-                  <button
-                    className="delete-button"
-                    onClick={() =>
-                      handleDeleteTestCase(testCase.test_case_id)
-                    }
-                  >
-                    Delete
-                  </button>
-                </td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {testCases.map((testCase) => (
+                <tr key={testCase.test_case_id}>
+                  <td>{testCase.test_case_id}</td>
+                  <td>{testCase.title}</td>
+                  <td>{testCase.description}</td>
+
+                  <td>
+                    <div className="table-actions">
+                      <button
+                        className="analyse-button"
+                        onClick={() => handleAnalyseTestCase(testCase.test_case_id)}
+                      >
+                        Analyse
+                      </button>
+                      <button
+                        className="delete-button"
+                        onClick={() =>
+                          handleDeleteTestCase(testCase.test_case_id)
+                        }
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         <div className="create-form">
           <h3>Add Test Case</h3>
