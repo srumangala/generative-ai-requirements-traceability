@@ -1,6 +1,6 @@
 from app.database.base import Base
-from app.models.requirement import Requirement
-from app.models.test_case import TestCase
+from app.database.models.requirement import Requirement
+from app.database.models.test_case import TestCase
 
 from logging.config import fileConfig
 

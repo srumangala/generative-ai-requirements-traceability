@@ -17,3 +17,19 @@ class RequirementUploadResponse(BaseModel):
     skipped_count: int
     created_items: list[RequirementResponse]
     skipped_ids: list[str]
+
+class RequirementAnalysisLLM(BaseModel):
+    analysis: str
+    issues:list[str]
+    suggestion: str | None
+    confidence: float
+
+
+class RequirementAnalysisResponse(BaseModel):
+    requirement_id: str
+    analysis: str
+    issues: list[str]
+    confidence: float
+    suggestion: str | None
+    llm_model: str
+    prompt_version: str
