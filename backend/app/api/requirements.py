@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.models.requirement import Requirement
+from app.database.models.requirement import Requirement
 from app.schemas.requirement import (
     RequirementCreate,
     RequirementResponse,
@@ -13,7 +13,6 @@ from app.schemas.requirement import (
 )
 
 router = APIRouter(prefix="/requirements", tags=["requirements"])
-
 
 @router.get("", response_model=list[RequirementResponse])
 def get_requirements(db: Session = Depends(get_db)):
