@@ -29,7 +29,9 @@ function AssistantPage() {
     <div className="assistant-page">
       <h1>AI Assistant</h1>
 
-      <p className="assistant-description">
+      <p className="assistant-description">Coming soon...</p>
+
+      {/* <p className="assistant-description">
         Ask questions about your requirements, test cases, and traceability data.
       </p>
 
@@ -64,7 +66,7 @@ function AssistantPage() {
         <button onClick={handleSend}>
           Send
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }
