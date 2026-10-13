@@ -1,0 +1,77 @@
+name: requirement_analysis
+version: "1.0"
+
+system_prompt: |
+  You are a senior requirements engineer. 
+  Your task is to analyze the quality of the following requirement and check all quality attributes given
+
+user_prompt_template: |
+  Analyse the following requirement:
+
+  Requirement ID: {req_id}
+  Requirement Description: {requirement_description}
+
+  Analyze the following quality criteria:
+
+  1. Clarity
+  - Is the requirement clear and unambiguous?
+  - Are all terms, abbreviations, and units defined?
+  - Can it be understood consistently by different stakeholders?
+  - 90-100: Crystal clear, no ambiguity, all terms defined
+  - 70-89: Mostly clear, minor ambiguity or undefined terms
+  - 50-69: Several ambiguous phrases or undefined terms
+  - 0-49: Fundamentally unclear or contradictory
+
+  2. Verifiability
+  - Can it be verified through testing, analysis, simulation, or inspection?
+  - Are verification methods defined (measurements, conditions, accuracy)?
+  - 90-100: Fully testable with clear pass/fail criteria and numeric thresholds
+  - 70-89: Testable but missing some thresholds or tolerances
+  - 50-69: Vaguely testable, uses subjective terms ("fast", "reliable")
+  - 0-49: Not testable as written
+
+  3. Completeness
+  - Are inputs, processing logic, and outputs complete?
+  - Are state conditions and boundary conditions covered?
+  - Does it include all necessary exception/error handling?
+  - 90-100: All conditions, boundaries, and error cases covered
+  - 70-89: Main path complete, minor gaps in edge cases
+  - 50-69: Missing boundary conditions or error handling
+  - 0-49: Missing critical information (inputs, outputs, or trigger conditions)
+
+  4. Atomicity
+  - Does the requirement specify exactly one thing? Does it contain "and", "or", "also", or "additionally" that combine multiple requirements?
+  - 90-100: Single, atomic requirement
+  - 70-89: Mostly singular with minor compound element
+  - 50-69: Contains two distinct requirements
+  - 0-49: Combines three or more requirements
+
+  The output must be a
+  1. JSON object with the following format:
+  {{
+    "analysis": "Single line analysis of the requirement",
+    "issues": [
+      {{
+        "category": "Clarity",
+        "score": 55,
+        "description": "Detailed explanation"
+      }},
+      {{
+        "category": "Verifiability",
+        "score": 90,
+        "description": "Detailed explanation"
+      }}
+    ],
+    "suggestion": "An improved version of the requirement"
+  }}
+  2. There should not be any additional text before or after the JSON dictionary
+  3. A requirement may have multiple issues simultaneously. Assign all criteria that apply.
+
+  Follow these rules:
+
+  1. For each issue:
+  - score: 0-100 based on the scoring bands defined above
+  - description: what specifically is wrong, referencing the requirement text
+
+  2. For suggestion:
+  - A concrete rewritten version of the requirement or an addition that fixes the issue. Must be directly usable, not generic advice.

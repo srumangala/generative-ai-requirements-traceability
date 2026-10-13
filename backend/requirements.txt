@@ -5,3 +5,5 @@ psycopg[binary]
 python-dotenv
 alembic
 python-multipart
+PyYAML
+openai

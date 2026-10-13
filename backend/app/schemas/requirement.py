@@ -18,18 +18,32 @@ class RequirementUploadResponse(BaseModel):
     created_items: list[RequirementResponse]
     skipped_ids: list[str]
 
+class RequirementIssue(BaseModel):
+    category: str
+    score: int
+    description: str
+
 class RequirementAnalysisLLM(BaseModel):
     analysis: str
-    issues:list[str]
+    issues:list[RequirementIssue]
     suggestion: str | None
-    confidence: float
-
 
 class RequirementAnalysisResponse(BaseModel):
     requirement_id: str
     analysis: str
-    issues: list[str]
+    issues: list[RequirementIssue]
     confidence: float
     suggestion: str | None
     llm_model: str
     prompt_version: str
+
+class RequirementBatchAnalysisRequest(BaseModel):
+    requirement_ids: list[str]
+
+class RequirementBatchAnalysisError(BaseModel):
+    requirement_id: str
+    error: str
+
+class RequirementBatchAnalysisResponse(BaseModel):
+    results: list[RequirementAnalysisResponse]
+    errors: list[RequirementBatchAnalysisError]

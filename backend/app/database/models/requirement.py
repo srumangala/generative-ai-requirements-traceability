@@ -39,7 +39,7 @@ class RequirementAnalysis(Base):
     )
 
     analysis: Mapped[str] = mapped_column(Text)
-    issues: Mapped[list[str]] = mapped_column(JSON)
+    issues: Mapped[list[dict]] = mapped_column(JSON)
     confidence: Mapped[float] = mapped_column(Float)
     suggestion: Mapped[str | None] = mapped_column(Text, nullable=True)
     llm_model: Mapped[str] = mapped_column(String(100))

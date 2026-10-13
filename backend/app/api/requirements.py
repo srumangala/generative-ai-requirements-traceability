@@ -10,7 +10,12 @@ from app.schemas.requirement import (
     RequirementCreate,
     RequirementResponse,
     RequirementUploadResponse,
+    RequirementAnalysisResponse,
+    RequirementBatchAnalysisRequest,
+    RequirementBatchAnalysisError,
+    RequirementBatchAnalysisResponse,
 )
+from app.services.requirement_ai_service import analyse_requirement, analyse_requirements
 
 router = APIRouter(prefix="/requirements", tags=["requirements"])
 
@@ -129,3 +134,70 @@ def delete_requirement(
     return {
         "message": f"Requirement {requirement_id} deleted successfully."
     }
+
+@router.post(
+    "/analyse-batch",
+    response_model=RequirementBatchAnalysisResponse,
+)
+def analyse_batch_requirements(
+    request: RequirementBatchAnalysisRequest,
+    db: Session = Depends(get_db),
+):
+    requirements = (
+        db.query(Requirement)
+        .filter(Requirement.requirement_id.in_(request.requirement_ids))
+        .all()
+    )
+
+    found_ids = {
+        requirement.requirement_id
+        for requirement in requirements
+    }
+
+    missing_ids = [
+        requirement_id
+        for requirement_id in request.requirement_ids
+        if requirement_id not in found_ids
+    ]
+
+    result = analyse_requirements(
+        requirements=requirements,
+        db=db,
+    )
+
+    for requirement_id in missing_ids:
+        result.errors.append(
+            RequirementBatchAnalysisError(
+                requirement_id=requirement_id,
+                error="Requirement not found.",
+            )
+        )
+
+    return result
+
+@router.post(
+    "/{requirement_id}/analyse",
+    response_model=RequirementAnalysisResponse,
+)
+def analyse_single_requirement(
+    requirement_id: str,
+    db: Session = Depends(get_db),
+):
+    requirement = (
+        db.query(Requirement)
+        .filter(Requirement.requirement_id == requirement_id)
+        .first()
+    )
+
+    if not requirement:
+        raise HTTPException(
+            status_code=404,
+            detail="Requirement not found.",
+        )
+    
+    result = analyse_requirement(
+        requirement=requirement,
+        db=db,
+    )
+
+    return result
