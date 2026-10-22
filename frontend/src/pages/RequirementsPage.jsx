@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import "./RequirementsPage.css";
 
 function RequirementsPage() {
@@ -12,6 +12,7 @@ function RequirementsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBatchIds, setSelectedBatchIds] = useState([]);
   const [batchAnalysisMessage, setBatchAnalysisMessage] = useState("");
+  const [requirementAnalyses, setRequirementAnalyses] = useState({});
 
   useEffect(() => {
     fetch("http://localhost:8000/requirements")
@@ -137,9 +138,24 @@ function RequirementsPage() {
     setBatchAnalysisMessage("AI analysis is not available yet.");
   }
 
-  function handleAnalyseRequirement(requirementId) {
-    // Connect the individual analysis API here, using requirementId.
-    setBatchAnalysisMessage(`AI analysis for ${requirementId} is not available yet.`);
+  async function handleAnalyseRequirement(requirementId) {
+    const response = await fetch(
+      `http://localhost:8000/requirements/${requirementId}/analyse`,
+      {
+        method: "POST",
+      }
+    );
+    if (!response.ok) {
+      console.error("Failed to analyse requirement");
+      return;
+    }
+
+    const analysis = await response.json();
+
+    setRequirementAnalyses((current) => ({
+      ...current,
+      [requirementId]: analysis,
+    }));
   }
 
   function handleGenerateTestCases(requirementId) {
@@ -237,47 +253,98 @@ function RequirementsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredRequirements.map((requirement) => (
-                <tr
-                  key={requirement.requirement_id}
-                  className={selectedBatchIds.includes(requirement.requirement_id) ? "is-selected" : ""}
-                >
-                  <td className="selection-column">
-                    <input
-                      type="checkbox"
-                      aria-label={`Select requirement ${requirement.requirement_id}`}
-                      checked={selectedBatchIds.includes(requirement.requirement_id)}
-                      onChange={() => handleBatchSelection(requirement.requirement_id)}
-                    />
-                  </td>
-                  <td>{requirement.requirement_id}</td>
-                  <td>{requirement.description}</td>
-                  <td className="analysis-column">
-                    <button
-                      className="analyse-button"
-                      onClick={() => handleAnalyseRequirement(requirement.requirement_id)}
-                    >
-                      Analyse
-                    </button>
-                  </td>
-                  <td className="generation-column">
-                    <button
-                      className="generate-button"
-                      onClick={() => handleGenerateTestCases(requirement.requirement_id)}
-                    >
-                      Generate Test Cases
-                    </button>
-                  </td>
-                  <td className="delete-column">
-                    <button
-                      className="delete-button"
-                      onClick={() => handleDeleteRequirement(requirement.requirement_id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {filteredRequirements.map((requirement) => {
+                const analysis = requirementAnalyses[requirement.requirement_id];
+                return (
+                  <>
+                    <tr>
+                      <td className="selection-column">
+                        <input
+                          type="checkbox"
+                          checked={selectedBatchIds.includes(
+                            requirement.requirement_id
+                          )}
+                          onChange={() => handleBatchSelection(requirement.requirement_id)}
+                        />
+                      </td>
+                      <td>{requirement.requirement_id}</td>
+                      <td>{requirement.description}</td>
+                      <td className="analysis-column">
+                        <button
+                          className="analyse-button"
+                          onClick={() => handleAnalyseRequirement(requirement.requirement_id)}
+                        >
+                          Analyse
+                        </button>
+                      </td>
+
+                      <td className="generation-column">
+                        <button
+                          className="generate-button"
+                          onClick={() => handleGenerateTestCases(requirement.requirement_id)}
+                        >
+                          Generate Test Cases
+                        </button>
+                      </td>
+
+                      <td className="delete-column">
+                        <button
+                          className="delete-button"
+                          onClick={() =>
+                            handleDeleteRequirement(
+                              requirement.requirement_id
+                            )
+                          }
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+
+                    {analysis && (
+                      <tr className="analysis-expanded-row">
+                        <td colSpan={6}>
+                          <div className="analysis-panel">
+                            <h3>AI Analysis</h3>
+
+                            <p>{analysis.analysis}</p>
+
+                            <span className="analysis-score">
+                              Overall Score: {analysis.confidence}
+                            </span>
+
+                            <div className="analysis-issues">
+                              {analysis.issues.map((issue) => (
+                                <div
+                                  className="analysis-issue"
+                                  key={issue.category}
+                                >
+                                  <div className="analysis-issue-header">
+                                    <strong>{issue.category}</strong>
+
+                                    <span className="analysis-issue-score">
+                                      {issue.score}/100
+                                    </span>
+                                  </div>
+
+                                  <p>{issue.description}</p>
+                                </div>
+                              ))}
+                            </div>
+
+                            {analysis.suggestion && (
+                              <div className="analysis-suggestion">
+                                <h4>Suggested Revision</h4>
+                                <p>{analysis.suggestion}</p>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
               {filteredRequirements.length === 0 && (
                 <tr>
                   <td colSpan={6} className="requirements-empty">
