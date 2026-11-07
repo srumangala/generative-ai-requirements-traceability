@@ -49,3 +49,22 @@ class RequirementAnalysis(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+
+class TestCaseGeneration(Base):
+    __tablename__ = "test_case_generation"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    
+    requirement_db_id: Mapped[int] = mapped_column(
+        ForeignKey("requirements.id"),
+        index=True,
+    )
+
+    generated_test_cases: Mapped[list[dict]] = mapped_column(JSON)
+    llm_model: Mapped[str] = mapped_column(String(100))
+    prompt_version: Mapped[str] = mapped_column(String(50))
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )

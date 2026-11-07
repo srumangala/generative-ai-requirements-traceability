@@ -14,8 +14,9 @@ from app.schemas.requirement import (
     RequirementBatchAnalysisRequest,
     RequirementBatchAnalysisError,
     RequirementBatchAnalysisResponse,
+    TestCaseGenerationResponse
 )
-from app.services.requirement_ai_service import analyse_requirement, analyse_requirements # TBD ai_generate_test_cases
+from app.services.requirement_ai_service import analyse_requirement, analyse_requirements, ai_generate_test_cases
 
 router = APIRouter(prefix="/requirements", tags=["requirements"])
 
@@ -204,7 +205,7 @@ def analyse_single_requirement(
 
 @router.post(
     "/{requirement_id}/generate-test-cases",
-    response_model=RequirementAnalysisResponse,
+    response_model=TestCaseGenerationResponse,
 )
 def generate_test_cases(
     requirement_id: str,
@@ -222,10 +223,9 @@ def generate_test_cases(
             detail="Requirement not found.",
         )
 
-    # TBD Once test case analysis is fixed
-    # result = ai_generate_test_cases(
-    #     requirement=requirement,
-    #     db=db,
-    # )
-
-    # return result
+    result = ai_generate_test_cases(
+        requirement=requirement,
+        db=db,
+    )
+    
+    return result

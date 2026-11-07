@@ -1,12 +1,14 @@
 from sqlalchemy.orm import Session
 
 from app.config import OPENAI_MODEL
-from app.database.models.requirement import Requirement, RequirementAnalysis # DB Models
+from app.database.models.requirement import Requirement, RequirementAnalysis, TestCaseGeneration # DB Models
 from app.schemas.requirement import (
     RequirementAnalysisLLM, 
     RequirementAnalysisResponse, 
     RequirementBatchAnalysisResponse,
     RequirementBatchAnalysisError,
+    TestCaseGenerationLLM,
+    TestCaseGenerationResponse
     ) # Pydantic Schemas
 from app.prompts.prompt_loader import load_prompt
 from app.services.llm_service import generate_structured_response
@@ -96,4 +98,45 @@ def analyse_requirements(
     return RequirementBatchAnalysisResponse(
         results=results,
         errors=errors,
+    )
+
+def ai_generate_test_cases(
+    requirement: Requirement,
+    db: Session,
+) ->TestCaseGenerationResponse:
+    prompt_file = "test_case_generation.yaml"
+    prompt = load_prompt(prompt_file)
+    
+    user_prompt = prompt.user_prompt_template.format(
+        requirement_description= requirement.description
+    )
+    
+    result = generate_structured_response(
+        system_prompt=prompt.system_prompt,
+        user_prompt=user_prompt,
+        response_model=TestCaseGenerationLLM,
+        llm_model=OPENAI_MODEL,
+    )
+
+    generated_results_json = [
+        generated.model_dump()
+        for generated in result.parsed.generated_test_cases
+    ]
+    
+    generation_record = TestCaseGeneration(
+        requirement_db_id=requirement.id,
+        generated_test_cases=generated_results_json,
+        llm_model=result.model,
+        prompt_version=prompt.version,
+    )
+
+    db.add(generation_record)
+    db.commit()
+    db.refresh(generation_record)
+
+    return TestCaseGenerationResponse(
+        requirement_id=requirement.requirement_id,
+        generated_test_cases=generation_record.generated_test_cases, # type: ignore
+        llm_model=generation_record.llm_model,
+        prompt_version=generation_record.prompt_version,
     )

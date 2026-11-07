@@ -46,3 +46,16 @@ class RequirementBatchAnalysisError(BaseModel):
 class RequirementBatchAnalysisResponse(BaseModel):
     results: list[RequirementAnalysisResponse]
     errors: list[RequirementBatchAnalysisError]
+
+class TestCaseGenerate(BaseModel):
+    title: str
+    description: str
+
+class TestCaseGenerationLLM(BaseModel):
+    generated_test_cases: list[TestCaseGenerate]
+
+class TestCaseGenerationResponse(BaseModel):
+    requirement_id: str
+    generated_test_cases: list[TestCaseGenerate]
+    llm_model: str
+    prompt_version: str

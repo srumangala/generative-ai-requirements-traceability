@@ -1,0 +1,25 @@
+name: test_case_generation_from_requirement
+version: "1.0"
+
+system_prompt: |
+  You are a senior requirements engineer. 
+  Your task is to generate 2 test cases for the given requirement
+
+user_prompt_template: |
+  Requirement: {requirement_description}
+
+  The output must be a
+  1. JSON object with the following format:
+  {{
+    "generated_test_cases": [
+      {{
+        "title": "Clear title for the test case"
+        "description": "Detailed explanation"
+      }},
+      {{
+        "title": "Clear title for the test case",
+        "description": "Detailed explanation"
+      }}
+    ]
+  }}
+  2. There should not be any additional text before or after the JSON dictionary
