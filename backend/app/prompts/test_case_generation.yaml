@@ -15,11 +15,10 @@ user_prompt_template: |
       {{
         "title": "Clear title for the test case"
         "description": "Detailed explanation"
+        "prerequisites": "Pre requisites for testing the test case"
+        "steps": "numbered steps from 1 detailing each step of testing"
+        "expected results": "expected results of the test case"
       }},
-      {{
-        "title": "Clear title for the test case",
-        "description": "Detailed explanation"
-      }}
     ]
   }}
   2. There should not be any additional text before or after the JSON dictionary

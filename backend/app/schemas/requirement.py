@@ -50,6 +50,9 @@ class RequirementBatchAnalysisResponse(BaseModel):
 class TestCaseGenerate(BaseModel):
     title: str
     description: str
+    prerequisites: str
+    steps: str
+    expected_result: str
 
 class TestCaseGenerationLLM(BaseModel):
     generated_test_cases: list[TestCaseGenerate]

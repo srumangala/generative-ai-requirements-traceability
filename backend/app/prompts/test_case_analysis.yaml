@@ -8,9 +8,11 @@ system_prompt: |
 user_prompt_template: |
   Analyse the following test case:
 
-  Test Case ID: {test_case_id}
-  Test Case Title: {test_case_title}
-  Test Case Description: {test_case_description}
+  Title: {test_case_title}
+  Description: {test_case_description}
+  Pre-requisites: {test_case_pre_requisites}
+  Steps: {test_case_steps}
+  Expected Results: {test_case_expected_results}
 
   Analyze the following quality criteria:
 

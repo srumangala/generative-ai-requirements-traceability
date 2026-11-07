@@ -5,12 +5,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.database.models.test_case import TestCase, TestCaseAnalysis
+from app.database.models.test_case import TestCase
 from app.schemas.test_case import (
     TestCaseCreate,
     TestCaseResponse,
     TestCaseUploadResponse,
-    TestCaseAnalysisLLM,
     TestCaseAnalysisResponse,
     TestCaseBatchAnalysisRequest,
     TestCaseBatchAnalysisResponse,

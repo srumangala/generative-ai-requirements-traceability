@@ -20,9 +20,11 @@ def analyse_test_case(
     prompt = load_prompt(prompt_file)
 
     user_prompt = prompt.user_prompt_template.format(
-        test_case_id= test_case.test_case_id,
         test_case_title = test_case.title,
-        test_case_description= test_case.description
+        test_case_description= test_case.description,
+        test_case_pre_requisites = test_case.prerequisites,
+        test_case_steps = test_case.steps,
+        test_case_expected_results = test_case.expected_result
     )
 
     result = generate_structured_response(

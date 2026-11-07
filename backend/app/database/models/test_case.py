@@ -16,14 +16,15 @@ class TestCase(Base):
     )
 
     title: Mapped[str] = mapped_column(String(255))
-
     description: Mapped[str] = mapped_column(Text)
+    prerequisites: Mapped[str] = mapped_column(Text)
+    steps: Mapped[str] = mapped_column(Text)
+    expected_result: Mapped[str] = mapped_column(Text)
 
     created_at: Mapped[datetime] = mapped_column(
             DateTime(timezone=True),
             server_default=func.now(),
-        )
-    
+        )   
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

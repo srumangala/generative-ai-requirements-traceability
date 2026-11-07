@@ -4,12 +4,18 @@ class TestCaseCreate(BaseModel):
     test_case_id: str
     title: str
     description: str
+    prerequisites: str
+    steps: str
+    expected_result: str
 
 class TestCaseResponse(BaseModel):
     id: int
     test_case_id: str
     title: str
     description: str
+    prerequisites: str
+    steps: str
+    expected_result: str
 
     model_config = ConfigDict(from_attributes=True)
 
