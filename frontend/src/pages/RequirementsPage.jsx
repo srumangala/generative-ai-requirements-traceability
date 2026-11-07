@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import "./RequirementsPage.css";
 
+
 function RequirementsPage() {
   const selectAllRef = useRef(null);
   const [requirements, setRequirements] = useState([]);
@@ -14,6 +15,7 @@ function RequirementsPage() {
   const [batchAnalysisMessage, setBatchAnalysisMessage] = useState("");
   const [requirementAnalyses, setRequirementAnalyses] = useState({});
   const [isAnalysing, setIsAnalysing] = useState(false);
+  const [testCaseGeneration, setTestCaseGeneration] = useState({});
 
   useEffect(() => {
     fetch("http://localhost:8000/requirements")
@@ -207,6 +209,51 @@ function RequirementsPage() {
     }
   }
 
+  async function handleSaveGeneratedTestCase(testCase) {
+    const response = await fetch(
+      "http://localhost:8000/test-cases",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: testCase.title,
+          description: testCase.description,
+          prerequisites: testCase.prerequisites,
+          steps: testCase.steps,
+          expected_result: testCase.expected_result,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(errorData);
+      return;
+    }
+
+    const createdTestCase = await response.json();
+
+    console.log("Saved:", createdTestCase);
+  }
+
+  function handleRejectGeneratedTestCase(requirementId, testCaseId) {
+    setTestCaseGeneration((current) => ({
+      ...current,
+
+      [requirementId]: {
+        ...current[requirementId],
+
+        generated_test_cases:
+          current[requirementId].generated_test_cases.filter(
+            (testCase) =>
+              testCase.test_case_id !== testCaseId
+          ),
+      },
+    }));
+  }
+
   async function handleGenerateTestCases(requirementId) {
     if (isAnalysing) return;
     setIsAnalysing(true);
@@ -223,6 +270,10 @@ function RequirementsPage() {
       }
       const result = await response.json();
 
+      setTestCaseGeneration((current) => ({
+        ...current,
+        [requirementId]: result,
+      }));
 
     } catch (error) {
       console.error(error);
@@ -274,10 +325,10 @@ function RequirementsPage() {
           >
             <div className="loading-spinner"></div>
 
-            <h3>Analysing Requirements</h3>
+            <h3>Analysing</h3>
 
             <p>
-              AI is evaluating your requirement(s).
+              AI is generating.
               Please wait...
             </p>
           </div>
@@ -342,6 +393,7 @@ function RequirementsPage() {
             <tbody>
               {filteredRequirements.map((requirement) => {
                 const analysis = requirementAnalyses[requirement.requirement_id];
+                const generatedTestCases = testCaseGeneration[requirement.requirement_id];
                 return (
                   <>
                     <tr>
@@ -370,6 +422,7 @@ function RequirementsPage() {
                         <button
                           className="generate-button"
                           onClick={() => handleGenerateTestCases(requirement.requirement_id)}
+                          disabled={isAnalysing}
                         >
                           Generate Test Cases
                         </button>
@@ -426,6 +479,71 @@ function RequirementsPage() {
                                 <p>{analysis.suggestion}</p>
                               </div>
                             )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+
+                    {generatedTestCases && (
+                      <tr className="generated-tests-expanded-row">
+                        <td colSpan={6}>
+                          <div className="generated-tests-panel">
+                            <h3>Generated Test Cases</h3>
+
+                            {generatedTestCases.generated_test_cases.map((testCase) => (
+                              <div
+                                className="generated-test-case"
+                                key={testCase.test_case_id}
+                              >
+                                <div className="generated-test-header">
+                                  <strong>{testCase.test_case_id}</strong>
+                                  <span>{testCase.title}</span>
+                                </div>
+                                <div className="test-case-section">
+                                  <h4>Description</h4>
+                                  <p>{testCase.description}</p>
+                                </div>
+
+                                <div className="test-case-section">
+                                  <h5>Prerequisites</h5>
+                                  <div className="test-case-steps">
+                                    {testCase.prerequisites.map((step, index) => (
+                                      <p key={index}>{step}</p>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="test-case-section">
+                                  <h5>Steps</h5>
+
+                                  <div className="test-case-steps">
+                                    {testCase.steps.map((step, index) => (
+                                      <p key={index}>{step}</p>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="test-case-section">
+                                  <h5>Expected Result</h5>
+                                  <p>{testCase.expected_result}</p>
+                                </div>
+                                <div className="test-case-accept-reject-section">
+                                  <button
+                                    className="accept-test-case-button"
+                                    onClick={() => handleSaveGeneratedTestCase(testCase)}
+                                  >
+                                    Accept
+                                  </button>
+                                  <button
+                                    className="reject-test-case-button"
+                                    onClick={() => handleRejectGeneratedTestCase(requirement.requirement_id,
+                                      testCase.test_case_id)}
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </td>
                       </tr>

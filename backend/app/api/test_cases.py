@@ -23,6 +23,22 @@ router = APIRouter(
     tags=["test-cases"],
 )
 
+def generate_next_test_case_id(db: Session) -> str:
+    test_cases = db.query(TestCase.test_case_id).all()
+
+    numbers = []
+
+    for (test_case_id,) in test_cases:
+        if test_case_id.startswith("TC-"):
+            number_part = test_case_id.replace("TC-", "")
+
+            if number_part.isdigit():
+                numbers.append(int(number_part))
+
+    next_number = max(numbers, default=0) + 1
+
+    return f"TC-{next_number:03d}"
+
 @router.get("", response_model=list[TestCaseResponse])
 def get_test_cases(db: Session = Depends(get_db)):
     return db.query(TestCase).all()
@@ -32,10 +48,11 @@ def create_test_case(
     test_case: TestCaseCreate,
     db: Session = Depends(get_db),
 ):
+    test_case_id = generate_next_test_case_id(db)
 
     existing_test_case = (
     db.query(TestCase)
-    .filter(TestCase.test_case_id == test_case.test_case_id)
+    .filter(TestCase.test_case_id == test_case_id)
     .first()
     )
 
@@ -46,9 +63,12 @@ def create_test_case(
         )
 
     new_test_case = TestCase(
-        test_case_id=test_case.test_case_id,
+        test_case_id = test_case_id,
         title=test_case.title,
         description=test_case.description,
+        prerequisites = test_case.prerequisites,
+        steps = test_case.steps,
+        expected_result = test_case.expected_result
     )
 
     db.add(new_test_case)
@@ -80,6 +100,9 @@ async def upload_test_cases(
         test_case_id = row.get("test_case_id")
         title = row.get("title")
         description = row.get("description")
+        prerequisites = row.get("prerequisites")
+        steps = row.get("steps")
+        expected_result = row.get("expected_result")
 
         if not test_case_id or not title or not description:
             continue
@@ -87,6 +110,9 @@ async def upload_test_cases(
         test_case_id = test_case_id.strip()
         title = title.strip()
         description = description.strip()
+        prerequisites = prerequisites.strip()
+        steps = steps.strip()
+        expected_result = expected_result.strip()
 
         existing_test_case = (
             db.query(TestCase)
@@ -102,6 +128,9 @@ async def upload_test_cases(
             test_case_id=test_case_id,
             title = title,
             description=description,
+            prerequisites=prerequisites,
+            steps=steps,
+            expected_result=expected_result,
         )
 
         db.add(test_case)

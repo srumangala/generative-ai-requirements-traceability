@@ -17,8 +17,8 @@ class TestCase(Base):
 
     title: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(Text)
-    prerequisites: Mapped[str] = mapped_column(Text)
-    steps: Mapped[str] = mapped_column(Text)
+    prerequisites: Mapped[list[str]] = mapped_column(JSON)
+    steps: Mapped[list[str]] = mapped_column(JSON)
     expected_result: Mapped[str] = mapped_column(Text)
 
     created_at: Mapped[datetime] = mapped_column(
