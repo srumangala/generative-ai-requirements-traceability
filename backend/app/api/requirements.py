@@ -15,7 +15,7 @@ from app.schemas.requirement import (
     RequirementBatchAnalysisError,
     RequirementBatchAnalysisResponse,
 )
-from app.services.requirement_ai_service import analyse_requirement, analyse_requirements
+from app.services.requirement_ai_service import analyse_requirement, analyse_requirements # TBD ai_generate_test_cases
 
 router = APIRouter(prefix="/requirements", tags=["requirements"])
 
@@ -57,7 +57,7 @@ async def upload_requirements(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    if not file.filename.endswith(".csv"):
+    if not file.filename.endswith(".csv"): # type: ignore
         raise HTTPException(
             status_code=400,
             detail="Only CSV files are supported."
@@ -201,3 +201,31 @@ def analyse_single_requirement(
     )
 
     return result
+
+@router.post(
+    "/{requirement_id}/generate-test-cases",
+    response_model=RequirementAnalysisResponse,
+)
+def generate_test_cases(
+    requirement_id: str,
+    db: Session = Depends(get_db),
+):
+    requirement = (
+        db.query(Requirement)
+        .filter(Requirement.requirement_id == requirement_id)
+        .first()
+    )
+
+    if not requirement:
+        raise HTTPException(
+            status_code=404,
+            detail="Requirement not found.",
+        )
+
+    # TBD Once test case analysis is fixed
+    # result = ai_generate_test_cases(
+    #     requirement=requirement,
+    #     db=db,
+    # )
+
+    # return result

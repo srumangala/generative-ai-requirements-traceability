@@ -13,6 +13,7 @@ function RequirementsPage() {
   const [selectedBatchIds, setSelectedBatchIds] = useState([]);
   const [batchAnalysisMessage, setBatchAnalysisMessage] = useState("");
   const [requirementAnalyses, setRequirementAnalyses] = useState({});
+  const [isAnalysing, setIsAnalysing] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:8000/requirements")
@@ -132,35 +133,103 @@ function RequirementsPage() {
     setBatchAnalysisMessage("");
   }
 
-  function handleAnalyseSelectedRequirements() {
-    if (selectedBatchRequirements.length === 0) return;
-    // Connect the batch API here, sending selectedBatchRequirements.map(item => item.requirement_id).
-    setBatchAnalysisMessage("AI analysis is not available yet.");
+  async function handleAnalyseSelectedRequirements() {
+    if (selectedBatchRequirements.length === 0 || isAnalysing) return;
+    setIsAnalysing(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8000/requirements/analyse-batch`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            requirement_ids: selectedBatchRequirements.map(
+              (requirement) => requirement.requirement_id
+            ),
+          }),
+        }
+      );
+      if (!response.ok) {
+        console.error("Failed to analyse selected requirements");
+        return;
+      }
+
+      const batchAnalysis = await response.json();
+
+      setRequirementAnalyses((current) => {
+        const updated = { ...current };
+
+        batchAnalysis.results.forEach((analysis) => {
+          updated[analysis.requirement_id] = analysis;
+        });
+
+        return updated;
+      });
+    } catch (error) {
+      console.error(error);
+      setBatchAnalysisMessage("Batch analysis failed. Please try again.");
+    } finally {
+      setIsAnalysing(false);
+    }
   }
 
   async function handleAnalyseRequirement(requirementId) {
-    const response = await fetch(
-      `http://localhost:8000/requirements/${requirementId}/analyse`,
-      {
-        method: "POST",
+
+    if (isAnalysing) return;
+    setIsAnalysing(true);
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/requirements/${requirementId}/analyse`,
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        console.error("Failed to analyse requirement");
+        return;
       }
-    );
-    if (!response.ok) {
-      console.error("Failed to analyse requirement");
-      return;
+
+      const analysis = await response.json();
+
+      setRequirementAnalyses((current) => ({
+        ...current,
+        [requirementId]: analysis,
+      }));
+
+    } catch (error) {
+      console.error(error);
+      setBatchAnalysisMessage("Analysis failed. Please try again.");
+    } finally {
+      setIsAnalysing(false);
     }
-
-    const analysis = await response.json();
-
-    setRequirementAnalyses((current) => ({
-      ...current,
-      [requirementId]: analysis,
-    }));
   }
 
-  function handleGenerateTestCases(requirementId) {
-    // Connect the test-case generation API here, using requirementId.
-    setBatchAnalysisMessage(`Test case generation for ${requirementId} is not available yet.`);
+  async function handleGenerateTestCases(requirementId) {
+    if (isAnalysing) return;
+    setIsAnalysing(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8000/requirements/${requirementId}/generate-test-cases`,
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        console.error("Failed to generate test cases");
+        return;
+      }
+      const result = await response.json();
+
+
+    } catch (error) {
+      console.error(error);
+      setBatchAnalysisMessage("Test Case Generation failed. Please try again.");
+    } finally {
+      setIsAnalysing(false);
+    }
   }
 
   async function handleDeleteRequirement(requirementId) {
@@ -196,6 +265,24 @@ function RequirementsPage() {
 
   return (
     <div className="requirements-page">
+      {isAnalysing && (
+        <div className="loading-overlay">
+          <div
+            className="loading-modal"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="loading-spinner"></div>
+
+            <h3>Analysing Requirements</h3>
+
+            <p>
+              AI is evaluating your requirement(s).
+              Please wait...
+            </p>
+          </div>
+        </div>
+      )}
       <h1>Requirements Analysis</h1>
 
       <section className="data-section">
@@ -223,7 +310,7 @@ function RequirementsPage() {
           </span>
           <button
             onClick={handleAnalyseSelectedRequirements}
-            disabled={selectedBatchRequirements.length === 0}
+            disabled={selectedBatchRequirements.length === 0 || isAnalysing}
           >
             Analyse with AI
           </button>
@@ -273,6 +360,7 @@ function RequirementsPage() {
                         <button
                           className="analyse-button"
                           onClick={() => handleAnalyseRequirement(requirement.requirement_id)}
+                          disabled={isAnalysing}
                         >
                           Analyse
                         </button>

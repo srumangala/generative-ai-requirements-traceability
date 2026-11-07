@@ -61,7 +61,7 @@ def analyse_requirement(
     return RequirementAnalysisResponse(
         requirement_id=requirement.requirement_id,
         analysis=analysis_record.analysis,
-        issues=analysis_record.issues,
+        issues=analysis_record.issues, # type: ignore
         suggestion=analysis_record.suggestion,
         confidence=analysis_record.confidence,
         llm_model=analysis_record.llm_model,

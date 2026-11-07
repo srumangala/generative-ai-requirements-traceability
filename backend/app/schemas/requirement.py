@@ -4,7 +4,6 @@ class RequirementCreate(BaseModel):
     requirement_id: str
     description: str
 
-
 class RequirementResponse(BaseModel):
     id: int
     requirement_id: str
