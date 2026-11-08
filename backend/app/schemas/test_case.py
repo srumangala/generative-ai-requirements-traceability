@@ -6,6 +6,7 @@ class TestCaseCreate(BaseModel):
     prerequisites: list[str]
     steps: list[str]
     expected_result: str
+    related_requirement: str
 
 class TestCaseResponse(BaseModel):
     id: int
@@ -15,6 +16,7 @@ class TestCaseResponse(BaseModel):
     prerequisites: list[str]
     steps: list[str]
     expected_result: str
+    related_requirement: str
 
     model_config = ConfigDict(from_attributes=True)
 

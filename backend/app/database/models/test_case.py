@@ -31,6 +31,12 @@ class TestCase(Base):
         onupdate=func.now(),
     )
 
+    related_requirement: Mapped[str | None] = mapped_column(
+        ForeignKey("requirements.requirement_id"),
+        nullable=True,
+        index=True,
+    )
+
 class TestCaseAnalysis(Base):
     __tablename__ = "test_case_analysis"
 

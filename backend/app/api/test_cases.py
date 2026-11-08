@@ -68,7 +68,8 @@ def create_test_case(
         description=test_case.description,
         prerequisites = test_case.prerequisites,
         steps = test_case.steps,
-        expected_result = test_case.expected_result
+        expected_result = test_case.expected_result,
+        related_requirement = test_case.related_requirement
     )
 
     db.add(new_test_case)
@@ -103,6 +104,7 @@ async def upload_test_cases(
         prerequisites = row.get("prerequisites")
         steps = row.get("steps")
         expected_result = row.get("expected_result")
+        related_requirement = row.get("related_requirement")
 
         if not test_case_id or not title or not description:
             continue
@@ -110,9 +112,19 @@ async def upload_test_cases(
         test_case_id = test_case_id.strip()
         title = title.strip()
         description = description.strip()
-        prerequisites = prerequisites.strip()
-        steps = steps.strip()
-        expected_result = expected_result.strip()
+        prerequisites = [
+            item.strip()
+            for item in row["prerequisites"].split("|")
+            if item.strip()
+        ]
+
+        steps = [
+            item.strip()
+            for item in row["steps"].split("|")
+            if item.strip()
+        ]
+        expected_result = (expected_result.strip() if expected_result else None)
+        related_requirement =  (related_requirement.strip() if related_requirement else None)
 
         existing_test_case = (
             db.query(TestCase)
@@ -131,6 +143,7 @@ async def upload_test_cases(
             prerequisites=prerequisites,
             steps=steps,
             expected_result=expected_result,
+            related_requirement=related_requirement
         )
 
         db.add(test_case)
