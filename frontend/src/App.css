@@ -38,7 +38,7 @@
 .data-section th { background: #f9fafb; color: #374151; font-weight: 600; }
 .data-section td { color: #374151; }
 .data-section th:first-child, .data-section td:first-child { width: 130px; }
-.data-section th:last-child, .data-section td:last-child { width: 180px; text-align: right; }
+.data-section th:last-child, .data-section td:last-child { width: 180px; }
 .data-section tbody tr:last-child td { border-bottom: 0; }
 .data-section tbody tr:hover { background: #f9fafb; }
 .create-form { margin-top: 20px; }
