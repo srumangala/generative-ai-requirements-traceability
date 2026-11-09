@@ -1,5 +1,5 @@
 name: test_case_generation_from_requirement
-version: "1.0"
+version: "1.1"
 
 system_prompt: |
   You are a senior requirements engineer. 
@@ -17,7 +17,7 @@ user_prompt_template: |
         "description": "Detailed explanation"
         "prerequisites": "Pre requisites for testing the test case"
         "steps": "numbered steps from 1 detailing each step of testing"
-        "expected results": "expected results of the test case"
+        "expected_result": "expected results of the test case"
       }},
     ]
   }}

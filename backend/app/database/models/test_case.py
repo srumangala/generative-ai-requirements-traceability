@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, DateTime, Float, ForeignKey, JSON, func
+from sqlalchemy import String, Text, DateTime, Float, ForeignKey, JSON, func, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 
@@ -35,4 +35,16 @@ class TestCase(Base):
         ForeignKey("requirements.requirement_id"),
         nullable=True,
         index=True,
+    )
+
+    is_archived: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+    )
+
+    archived_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
     )

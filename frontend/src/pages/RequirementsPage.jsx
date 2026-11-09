@@ -209,7 +209,7 @@ function RequirementsPage() {
     }
   }
 
-  async function handleSaveGeneratedTestCase(testCase) {
+  async function handleSaveGeneratedTestCase(testCase, requirementId) {
     const response = await fetch(
       "http://localhost:8000/test-cases",
       {
@@ -223,6 +223,7 @@ function RequirementsPage() {
           prerequisites: testCase.prerequisites,
           steps: testCase.steps,
           expected_result: testCase.expected_result,
+          related_requirement: requirementId
         }),
       }
     );
@@ -530,7 +531,7 @@ function RequirementsPage() {
                                 <div className="test-case-accept-reject-section">
                                   <button
                                     className="accept-test-case-button"
-                                    onClick={() => handleSaveGeneratedTestCase(testCase)}
+                                    onClick={() => handleSaveGeneratedTestCase(testCase, requirement.requirement_id)}
                                   >
                                     Accept
                                   </button>

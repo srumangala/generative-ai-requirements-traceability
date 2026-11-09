@@ -3,6 +3,7 @@ import io
 from fastapi import UploadFile, File, HTTPException
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 
 from app.database.database import get_db
 from app.database.models.requirement import Requirement
@@ -22,7 +23,7 @@ router = APIRouter(prefix="/requirements", tags=["requirements"])
 
 @router.get("", response_model=list[RequirementResponse])
 def get_requirements(db: Session = Depends(get_db)):
-    return db.query(Requirement).all()
+    return db.query(Requirement).filter(Requirement.is_archived == False).all()
 
 @router.post("", response_model=RequirementResponse)
 def create_requirement(
@@ -129,7 +130,8 @@ def delete_requirement(
             detail="Requirement not found.",
         )
 
-    db.delete(requirement)
+    requirement.is_archived = True
+    requirement.archived_at = datetime.now(timezone.utc)
     db.commit()
 
     return {

@@ -3,6 +3,7 @@ import io
 from fastapi import UploadFile, File, HTTPException
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 
 from app.database.database import get_db
 from app.database.models.test_case import TestCase
@@ -35,7 +36,7 @@ def generate_next_test_case_id(db: Session) -> str:
 
 @router.get("", response_model=list[TestCaseResponse])
 def get_test_cases(db: Session = Depends(get_db)):
-    return db.query(TestCase).all()
+    return db.query(TestCase).filter(TestCase.is_archived == False).all()
 
 @router.post("", response_model=TestCaseResponse)
 def create_test_case(
@@ -172,7 +173,8 @@ def delete_test_case(
             detail="Test case not found.",
         )
 
-    db.delete(test_case)
+    test_case.is_archived = True
+    test_case.archived_at = datetime.now(timezone.utc)
     db.commit()
 
     return {
