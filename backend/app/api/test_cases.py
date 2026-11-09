@@ -10,13 +10,7 @@ from app.schemas.test_case import (
     TestCaseCreate,
     TestCaseResponse,
     TestCaseUploadResponse,
-    TestCaseAnalysisResponse,
-    TestCaseBatchAnalysisRequest,
-    TestCaseBatchAnalysisResponse,
-    TestCaseBatchAnalysisError
 )
-
-from app.services.test_case_ai_service import analyse_test_case, analyse_test_cases
 
 router = APIRouter(
     prefix="/test-cases",
@@ -184,70 +178,3 @@ def delete_test_case(
     return {
         "message": f"Test case {test_case_id} deleted successfully."
     }
-
-@router.post(
-    "/analyse-batch",
-    response_model=TestCaseBatchAnalysisResponse
-)
-def analyse_batch_test_cases(
-    request: TestCaseBatchAnalysisRequest,
-    db: Session = Depends(get_db),
-):
-    test_cases = (
-            db.query(TestCase)
-            .filter(TestCase.test_case_id.in_(request.test_case_ids))
-            .all()
-        )
-    found_ids = {
-            test_case.test_case_id
-            for test_case in test_cases
-        }
-    
-    missing_ids = [
-        test_case_id
-        for test_case_id in request.test_case_ids
-        if test_case_id not in found_ids
-    ]
-
-    result = analyse_test_cases(
-        test_cases=test_cases,
-        db=db,
-    )
-
-    for test_case_id in missing_ids:
-        result.errors.append(
-            TestCaseBatchAnalysisError(
-                test_case_id=test_case_id,
-                error="Test Case not found.",
-            )
-        )
-
-    return result
-
-
-@router.post(
-    "/{test_case_id}/analyse",
-    response_model=TestCaseAnalysisResponse
-)
-def analyse_single_test_case(
-    test_case_id: str,
-    db: Session = Depends(get_db)
-):
-    test_case = (
-        db.query(TestCase)
-        .filter(TestCase.test_case_id == test_case_id)
-        .first()
-    )
-
-    if not test_case:
-        raise HTTPException(
-            status_code= 404,
-            detail = "Test Case Not found.",
-        )
-
-    result = analyse_test_case(
-        test_case = test_case,
-        db = db
-    )
-
-    return result

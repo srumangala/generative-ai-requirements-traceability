@@ -102,11 +102,6 @@ function TestCasesPage() {
     setTestCasesFile(null);
   }
 
-  function handleAnalyseTestCase(testCaseId) {
-    // Connect the individual analysis API here, using testCaseId.
-    setBatchAnalysisMessage(`AI analysis for ${testCaseId} is not available yet.`);
-  }
-
   async function handleDeleteTestCase(testCaseId) {
     const confirmed = window.confirm(
       "Do you really want to delete this test case?"
@@ -186,18 +181,11 @@ function TestCasesPage() {
     setBatchAnalysisMessage("");
   }
 
-  function handleAnalyseSelectedTestCases() {
-    if (selectedBatchCases.length === 0) return;
-    // Connect the batch API here, sending selectedBatchCases.map(item => item.test_case_id).
-    setBatchAnalysisMessage("AI analysis is not available yet.");
-  }
-
   return (
     <div className="test-cases-page">
-      <h1>Test Case Analysis</h1>
+      <h1>Test Cases</h1>
 
       <section className="data-section">
-        <h2>Test Cases</h2>
         <div className="test-cases-search">
           <label htmlFor="test-cases-search">Search test cases</label>
           <input
@@ -219,16 +207,7 @@ function TestCasesPage() {
             {selectedBatchCases.length} selected
             {hiddenSelectedCount > 0 && ` (${hiddenSelectedCount} hidden by search)`}
           </span>
-          <button
-            onClick={handleAnalyseSelectedTestCases}
-            disabled={selectedBatchCases.length === 0}
-          >
-            Analyse with AI
-          </button>
         </div>
-        {batchAnalysisMessage && (
-          <p className="batch-analysis-message" role="status">{batchAnalysisMessage}</p>
-        )}
         <div className="table-scroll">
           <table>
             <thead>
@@ -289,16 +268,6 @@ function TestCasesPage() {
                           >
                             {isExpanded ? "Hide" : "View"}
                           </button>
-
-                          <button
-                            className="analyse-button"
-                            onClick={() =>
-                              handleAnalyseTestCase(testCase.test_case_id)
-                            }
-                          >
-                            Analyse
-                          </button>
-
                           <button
                             className="delete-button"
                             onClick={() =>

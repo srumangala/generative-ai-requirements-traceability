@@ -6,10 +6,11 @@ AI-assisted requirements engineering system for analyzing requirement quality, g
 1. Open Docker Desktop
 2. Open terminal in root folder and run .\start-dev.ps1
 
-Tools:
-Frontend : React.js
-Backend : Python with FastAPI
-DB : PostgreSQL 
-Vector DB : Weaviate
-LLM : OpenAI 
+### Tools
+
+* Frontend : React.js
+* Backend : Python with FastAPI
+* DB : PostgreSQL 
+* Vector DB : Weaviate
+* LLM : OpenAI 
 
