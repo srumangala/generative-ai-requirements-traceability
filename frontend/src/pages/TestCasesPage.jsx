@@ -1,13 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import "./TestCasesPage.css";
 
 function TestCasesPage() {
   const selectAllRef = useRef(null);
   const [testCasesFile, setTestCasesFile] = useState(null);
   const [testCases, setTestCases] = useState([]);
-  const [newTestCaseId, setNewTestCaseId] = useState("");
   const [newTestCaseTitle, setNewTestCaseTitle] = useState("");
   const [newTestCaseDescription, setNewTestCaseDescription] = useState("");
+  const [newTestCasePreRequisites, setNewTestCasePreRequisites] = useState([""]);
+  const [newTestCaseSteps, setNewTestCaseSteps] = useState([""]);
+  const [newTestCaseExpectedResult, setNewTestCaseExpectedResult] = useState("");
+  const [newTestCaseRelatedRequirement, setNewTestCaseRelatedRequirement] = useState("");
+  const [expandedTestCaseId, setExpandedTestCaseId] = useState(null);
   const [testCaseError, setTestCaseError] = useState("");
   const [testCasesUploadMessage, setTestCasesUploadMessage] = useState("");
 
@@ -18,9 +22,12 @@ function TestCasesPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        test_case_id: newTestCaseId,
         title: newTestCaseTitle,
         description: newTestCaseDescription,
+        prerequisites: newTestCasePreRequisites,
+        steps: newTestCaseSteps,
+        expected_result: newTestCaseExpectedResult,
+        related_requirement: newTestCaseRelatedRequirement
       }),
     });
 
@@ -43,9 +50,13 @@ function TestCasesPage() {
 
     setTestCaseError("");
 
-    setNewTestCaseId("");
     setNewTestCaseTitle("");
     setNewTestCaseDescription("");
+    setNewTestCasePreRequisites([""]);
+    setNewTestCaseSteps([""]);
+    setNewTestCaseExpectedResult("");
+    setNewTestCaseRelatedRequirement("");
+
   }
 
   async function handleTestCasesUpload() {
@@ -226,64 +237,120 @@ function TestCasesPage() {
                   <input
                     ref={selectAllRef}
                     type="checkbox"
-                    aria-label="Select all matching test cases"
                     checked={allSelected}
                     disabled={filteredTestCases.length === 0}
                     onChange={handleSelectAll}
                   />
                 </th>
+
                 <th>ID</th>
                 <th>Title</th>
-                <th>Description</th>
+                <th>Related Requirement</th>
                 <th>Actions</th>
               </tr>
             </thead>
-
             <tbody>
-              {filteredTestCases.map((testCase) => (
-                <tr
-                  key={testCase.test_case_id}
-                  className={selectedBatchIds.includes(testCase.test_case_id) ? "is-selected" : ""}
-                >
-                  <td className="selection-column">
-                    <input
-                      type="checkbox"
-                      aria-label={`Select test case ${testCase.test_case_id}`}
-                      checked={selectedBatchIds.includes(testCase.test_case_id)}
-                      onChange={() => handleBatchSelection(testCase.test_case_id)}
-                    />
-                  </td>
-                  <td>{testCase.test_case_id}</td>
-                  <td>{testCase.title}</td>
-                  <td>{testCase.description}</td>
+              {filteredTestCases.map((testCase) => {
+                const isExpanded = expandedTestCaseId === testCase.test_case_id;
 
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        className="analyse-button"
-                        onClick={() => handleAnalyseTestCase(testCase.test_case_id)}
-                      >
-                        Analyse
-                      </button>
-                      <button
-                        className="delete-button"
-                        onClick={() =>
-                          handleDeleteTestCase(testCase.test_case_id)
-                        }
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredTestCases.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="test-cases-empty">
-                    {normalizedQuery ? "No test cases match your search." : "No test cases available."}
-                  </td>
-                </tr>
-              )}
+                return (
+                  <Fragment key={testCase.test_case_id}>
+                    <tr
+                      className={
+                        selectedBatchIds.includes(testCase.test_case_id)
+                          ? "is-selected"
+                          : ""
+                      }
+                    >
+                      <td className="selection-column">
+                        <input
+                          type="checkbox"
+                          aria-label={`Select test case ${testCase.test_case_id}`}
+                          checked={selectedBatchIds.includes(testCase.test_case_id)}
+                          onChange={() =>
+                            handleBatchSelection(testCase.test_case_id)
+                          }
+                        />
+                      </td>
+
+                      <td>{testCase.test_case_id}</td>
+                      <td>{testCase.title}</td>
+                      <td>{testCase.related_requirement}</td>
+
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            className="view-button"
+                            onClick={() =>
+                              setExpandedTestCaseId(
+                                isExpanded ? null : testCase.test_case_id
+                              )
+                            }
+                          >
+                            {isExpanded ? "Hide" : "View"}
+                          </button>
+
+                          <button
+                            className="analyse-button"
+                            onClick={() =>
+                              handleAnalyseTestCase(testCase.test_case_id)
+                            }
+                          >
+                            Analyse
+                          </button>
+
+                          <button
+                            className="delete-button"
+                            onClick={() =>
+                              handleDeleteTestCase(testCase.test_case_id)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {isExpanded && (
+                      <tr className="test-case-details-row">
+                        <td colSpan={5}>
+                          <div className="test-case-details">
+                            <div className="test-case-detail-section">
+                              <h4>Description</h4>
+                              <p>{testCase.description}</p>
+                            </div>
+
+                            <div className="test-case-detail-section">
+                              <h4>Prerequisites</h4>
+
+                              <ul>
+                                {testCase.prerequisites.map((item, index) => (
+                                  <li key={index}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div className="test-case-detail-section">
+                              <h4>Steps</h4>
+
+                              <ol>
+                                {testCase.steps.map((step, index) => (
+                                  <li key={index}>{step}</li>
+                                ))}
+                              </ol>
+                            </div>
+
+                            <div className="test-case-detail-section">
+                              <h4>Expected Result</h4>
+                              <p>{testCase.expected_result}</p>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -291,29 +358,15 @@ function TestCasesPage() {
         <div className="create-form">
           <h3>Add Test Case</h3>
 
-          <div className="form-row">
-            <div className="form-field small-field">
-              <label>Test Case ID</label>
-              <input
-                type="text"
-                placeholder="TC-001"
-                value={newTestCaseId}
-                onChange={(event) => {
-                  setNewTestCaseId(event.target.value);
-                  setTestCaseError("");
-                }}
-              />
-            </div>
 
-            <div className="form-field">
-              <label>Title</label>
-              <input
-                type="text"
-                placeholder="Successful login"
-                value={newTestCaseTitle}
-                onChange={(event) => setNewTestCaseTitle(event.target.value)}
-              />
-            </div>
+          <div className="form-field">
+            <label>Title</label>
+            <input
+              type="text"
+              placeholder="Enter the test case Title"
+              value={newTestCaseTitle}
+              onChange={(event) => setNewTestCaseTitle(event.target.value)}
+            />
           </div>
 
           <div className="form-field">
@@ -327,13 +380,59 @@ function TestCasesPage() {
             />
           </div>
 
+          <div className="form-field">
+            <label>Prerequisites</label>
+            <textarea
+              placeholder="Describe the prerequisites..."
+              value={newTestCasePreRequisites}
+              onChange={(event) =>
+                setNewTestCasePreRequisites(event.target.value)
+              }
+            />
+          </div>
+
+          <div className="form-field">
+            <label>Steps</label>
+            <textarea
+              placeholder="Describe the steps to execute the test case..."
+              value={newTestCaseSteps}
+              onChange={(event) =>
+                setNewTestCaseSteps(event.target.value)
+              }
+            />
+          </div>
+
+          <div className="form-field">
+            <label>Expected Results</label>
+            <textarea
+              placeholder="Describe the expected result..."
+              value={newTestCaseExpectedResult}
+              onChange={(event) =>
+                setNewTestCaseExpectedResult(event.target.value)
+              }
+            />
+          </div>
+
+          <div className="form-field">
+            <label>Related Requirement</label>
+            <input
+              type="text"
+              placeholder="Give the related requirement (if any)..."
+              value={newTestCaseExpectedResult}
+              onChange={(event) => setNewTestCaseExpectedResult(event.target.value)}
+            />
+          </div>
+
           <button
             className="add-button"
             onClick={handleCreateTestCase}
             disabled={
-              !newTestCaseId.trim() ||
               !newTestCaseTitle.trim() ||
-              !newTestCaseDescription.trim()
+              !newTestCaseDescription.trim() ||
+              !newTestCasePreRequisites.trim() ||
+              !newTestCaseSteps.trim() ||
+              !newTestCaseExpectedResult.trim() ||
+              !newTestCaseRelatedRequirement.trim()
             }
           >
             Add Test Case

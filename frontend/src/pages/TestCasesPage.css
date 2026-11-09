@@ -15,3 +15,58 @@
 @media (max-width: 800px) {
   .test-cases-page .data-section th:nth-child(2), .test-cases-page .data-section td:nth-child(2) { width: 80px; }
 }
+.test-case-details-row td {
+  padding: 0;
+  background: #f9fafb;
+}
+
+.test-case-details {
+  padding: 22px 28px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.test-case-detail-section {
+  margin-bottom: 20px;
+}
+
+.test-case-detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.test-case-detail-section h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.test-case-detail-section p {
+  margin: 0;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.test-case-detail-section ul,
+.test-case-detail-section ol {
+  margin: 8px 0 0;
+  padding-left: 24px;
+  color: #4b5563;
+}
+
+.test-case-detail-section li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.view-button {
+  padding: 7px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.view-button:hover {
+  background: #f3f4f6;
+}
