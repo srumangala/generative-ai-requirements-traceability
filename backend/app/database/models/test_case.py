@@ -42,6 +42,12 @@ class TestCase(Base):
         nullable=True,
     )
 
+    source: Mapped[str |None] = mapped_column(
+        Text,
+        default="User_Create",
+        nullable=True
+    )
+
     is_archived: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
