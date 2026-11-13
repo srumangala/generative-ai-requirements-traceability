@@ -210,7 +210,7 @@ function RequirementsPage() {
     }
   }
 
-  async function handleSaveGeneratedTestCase(testCase, requirementId) {
+  async function handleSaveGeneratedTestCase(testCase, requirementId, testCaseIndex) {
     const response = await fetch(
       "http://localhost:8000/test-cases",
       {
@@ -236,24 +236,58 @@ function RequirementsPage() {
     }
 
     const createdTestCase = await response.json();
+    setTestCaseGeneration((current) => {
+      const updatedTestCases =
+        current[requirementId].generated_test_cases.map(
+          (generatedTestCase, index) => {
+            if (index === testCaseIndex) {
+              return {
+                ...generatedTestCase,
+                status: "accepted",
+                test_case_id: createdTestCase.test_case_id,
+              };
+            }
+
+            return generatedTestCase;
+          }
+        );
+
+      return {
+        ...current,
+        [requirementId]: {
+          ...current[requirementId],
+          generated_test_cases: updatedTestCases,
+        },
+      };
+    });
 
     console.log("Saved:", createdTestCase);
   }
 
-  function handleRejectGeneratedTestCase(requirementId, testCaseId) {
-    setTestCaseGeneration((current) => ({
-      ...current,
+  function handleRejectGeneratedTestCase(requirementId, testCaseIndex) {
+    setTestCaseGeneration((current) => {
+      const updatedTestCases =
+        current[requirementId].generated_test_cases.map(
+          (testCase, index) => {
+            if (index === testCaseIndex) {
+              return {
+                ...testCase,
+                status: "rejected",
+              };
+            }
 
-      [requirementId]: {
-        ...current[requirementId],
+            return testCase;
+          }
+        );
 
-        generated_test_cases:
-          current[requirementId].generated_test_cases.filter(
-            (testCase) =>
-              testCase.test_case_id !== testCaseId
-          ),
-      },
-    }));
+      return {
+        ...current,
+        [requirementId]: {
+          ...current[requirementId],
+          generated_test_cases: updatedTestCases,
+        },
+      };
+    });
   }
 
   async function handleGenerateTestCases(requirementId) {
@@ -510,10 +544,13 @@ function RequirementsPage() {
                           <div className="generated-tests-panel">
                             <h3>Generated Test Cases</h3>
 
-                            {generatedTestCases.generated_test_cases.map((testCase) => (
-                              <div className="generated-test-case">
+                            {generatedTestCases.generated_test_cases.map((testCase, index) => (
+                              <div
+                                className="generated-test-case"
+                                key={index}
+                              >
                                 <div className="generated-test-header">
-                                  <h4>Title :</h4>
+                                  <h4>TC-00{index+1}</h4>
                                   <span>{testCase.title}</span>
                                 </div>
                                 <div className="test-case-section">
@@ -547,16 +584,24 @@ function RequirementsPage() {
                                 <div className="test-case-accept-reject-section">
                                   <button
                                     className="accept-test-case-button"
-                                    onClick={() => handleSaveGeneratedTestCase(testCase, requirement.requirement_id)}
+                                    disabled={
+                                      testCase.status === "accepted" ||
+                                      testCase.status === "rejected"
+                                    }
+                                    onClick={() => handleSaveGeneratedTestCase(testCase, requirement.requirement_id, index)}
                                   >
-                                    Accept
+                                    {testCase.status === "accepted" ? "Accepted" : "Accept"}
                                   </button>
                                   <button
                                     className="reject-test-case-button"
+                                    disabled={
+                                      testCase.status === "accepted" ||
+                                      testCase.status === "rejected"
+                                    }
                                     onClick={() => handleRejectGeneratedTestCase(requirement.requirement_id,
-                                      testCase.test_case_id)}
+                                      index)}
                                   >
-                                    Reject
+                                    {testCase.status === "rejected" ? "Rejected" : "Reject"}
                                   </button>
                                 </div>
                               </div>
