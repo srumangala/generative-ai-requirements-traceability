@@ -15,6 +15,7 @@ function RequirementsPage() {
   const [batchAnalysisMessage, setBatchAnalysisMessage] = useState("");
   const [requirementAnalyses, setRequirementAnalyses] = useState({});
   const [isAnalysing, setIsAnalysing] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [testCaseGeneration, setTestCaseGeneration] = useState({});
 
   useEffect(() => {
@@ -290,8 +291,8 @@ function RequirementsPage() {
   }
 
   async function handleGenerateTestCases(requirementId) {
-    if (isAnalysing) return;
-    setIsAnalysing(true);
+    if (isGenerating) return;
+    setIsGenerating(true);
     try {
       const response = await fetch(
         `http://localhost:8000/requirements/${requirementId}/generate-test-cases`,
@@ -314,7 +315,7 @@ function RequirementsPage() {
       console.error(error);
       setBatchAnalysisMessage("Test Case Generation failed. Please try again.");
     } finally {
-      setIsAnalysing(false);
+      setIsGenerating(false);
     }
   }
 
@@ -363,7 +364,25 @@ function RequirementsPage() {
             <h3>Analysing</h3>
 
             <p>
-              AI is generating.
+              AI is analysing requirement.
+              Please wait...
+            </p>
+          </div>
+        </div>
+      )}
+      {isGenerating && (
+        <div className="loading-overlay">
+          <div
+            className="loading-modal"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="loading-spinner"></div>
+
+            <h3>Generating</h3>
+
+            <p>
+              AI is Generating test cases.
               Please wait...
             </p>
           </div>
@@ -396,7 +415,7 @@ function RequirementsPage() {
           </span>
           <button
             onClick={handleAnalyseSelectedRequirements}
-            disabled={selectedBatchRequirements.length === 0 || isAnalysing}
+            disabled={selectedBatchRequirements.length === 0 || isAnalysing || isGenerating}
           >
             Analyse with AI
           </button>
@@ -457,7 +476,7 @@ function RequirementsPage() {
                         <button
                           className="generate-button"
                           onClick={() => handleGenerateTestCases(requirement.requirement_id)}
-                          disabled={isAnalysing}
+                          disabled={isGenerating}
                         >
                           Generate Test Cases
                         </button>
@@ -531,21 +550,21 @@ function RequirementsPage() {
                                 key={index}
                               >
                                 <div className="generated-test-header">
-                                  <strong>TC-00{index+1}</strong>
+                                  <h4>TC-00{index+1}</h4>
                                   <span>{testCase.title}</span>
                                 </div>
                                 <div className="test-case-section">
-                                  <h4>Description</h4>
+                                  <h5>Description</h5>
                                   <p>{testCase.description}</p>
                                 </div>
 
                                 <div className="test-case-section">
                                   <h5>Prerequisites</h5>
-                                  <div className="test-case-steps">
-                                    {testCase.prerequisites.map((step, index) => (
-                                      <p key={index}>{step}</p>
+                                  <ul className="test-case-prerequisites">
+                                    {testCase.prerequisites.map((prerequisite, index) => (
+                                      <li key={index}>{prerequisite}</li>
                                     ))}
-                                  </div>
+                                  </ul>
                                 </div>
 
                                 <div className="test-case-section">
