@@ -37,6 +37,11 @@ class TestCase(Base):
         index=True,
     )
 
+    status: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
     is_archived: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
