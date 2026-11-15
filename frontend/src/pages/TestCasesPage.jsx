@@ -27,7 +27,7 @@ function TestCasesPage() {
         prerequisites: newTestCasePreRequisites,
         steps: newTestCaseSteps,
         expected_result: newTestCaseExpectedResult,
-        related_requirement: newTestCaseRelatedRequirement
+        related_requirement: newTestCaseRelatedRequirement,
       }),
     });
 

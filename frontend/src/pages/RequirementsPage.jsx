@@ -210,22 +210,11 @@ function RequirementsPage() {
     }
   }
 
-  async function handleSaveGeneratedTestCase(testCase, requirementId, testCaseIndex) {
+  async function handleSaveGeneratedTestCase(test_case_id) {
     const response = await fetch(
-      "http://localhost:8000/test-cases",
+      `http://localhost:8000/requirements/${test_case_id}/accept`,
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: testCase.title,
-          description: testCase.description,
-          prerequisites: testCase.prerequisites,
-          steps: testCase.steps,
-          expected_result: testCase.expected_result,
-          related_requirement: requirementId
-        }),
+        method: "POST"
       }
     );
 
@@ -235,59 +224,74 @@ function RequirementsPage() {
       return;
     }
 
-    const createdTestCase = await response.json();
+    const result = await response.json();
     setTestCaseGeneration((current) => {
-      const updatedTestCases =
-        current[requirementId].generated_test_cases.map(
-          (generatedTestCase, index) => {
-            if (index === testCaseIndex) {
-              return {
-                ...generatedTestCase,
-                status: "accepted",
-                test_case_id: createdTestCase.test_case_id,
-              };
-            }
+      const updated = { ...current };
 
-            return generatedTestCase;
-          }
-        );
+      for (const requirementId in updated) {
+        updated[requirementId] = {
+          ...updated[requirementId],
 
-      return {
-        ...current,
-        [requirementId]: {
-          ...current[requirementId],
-          generated_test_cases: updatedTestCases,
-        },
-      };
+          generated_test_cases:
+            updated[requirementId].generated_test_cases.map(
+              (testCase) =>
+                testCase.id === test_case_id
+                  ? {
+                    ...testCase,
+                    status: "accepted",
+                  }
+                  : testCase
+            ),
+        };
+      }
+
+      return updated;
     });
 
-    console.log("Saved:", createdTestCase);
+    console.log("Accepted:", result);
   }
 
-  function handleRejectGeneratedTestCase(requirementId, testCaseIndex) {
+
+  async function handleRejectGeneratedTestCase(test_case_id) {
+    const response = await fetch(
+      `http://localhost:8000/requirements/${test_case_id}/reject`,
+      {
+        method: "POST"
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(errorData);
+      return;
+    }
+
+    const result = await response.json();
+
     setTestCaseGeneration((current) => {
-      const updatedTestCases =
-        current[requirementId].generated_test_cases.map(
-          (testCase, index) => {
-            if (index === testCaseIndex) {
-              return {
-                ...testCase,
-                status: "rejected",
-              };
-            }
+      const updated = { ...current };
 
-            return testCase;
-          }
-        );
+      for (const requirementId in updated) {
+        updated[requirementId] = {
+          ...updated[requirementId],
 
-      return {
-        ...current,
-        [requirementId]: {
-          ...current[requirementId],
-          generated_test_cases: updatedTestCases,
-        },
-      };
+          generated_test_cases:
+            updated[requirementId].generated_test_cases.map(
+              (testCase) =>
+                testCase.id === test_case_id
+                  ? {
+                    ...testCase,
+                    status: "rejected",
+                  }
+                  : testCase
+            ),
+        };
+      }
+
+      return updated;
     });
+
+    console.log("Rejected:", result);
   }
 
   async function handleGenerateTestCases(requirementId) {
@@ -547,10 +551,10 @@ function RequirementsPage() {
                             {generatedTestCases.generated_test_cases.map((testCase, index) => (
                               <div
                                 className="generated-test-case"
-                                key={index}
+                                key={testCase.id}
                               >
                                 <div className="generated-test-header">
-                                  <h4>TC-00{index+1}</h4>
+                                  <h4>TC-00{index + 1}</h4>
                                   <span>{testCase.title}</span>
                                 </div>
                                 <div className="test-case-section">
@@ -588,7 +592,7 @@ function RequirementsPage() {
                                       testCase.status === "accepted" ||
                                       testCase.status === "rejected"
                                     }
-                                    onClick={() => handleSaveGeneratedTestCase(testCase, requirement.requirement_id, index)}
+                                    onClick={() => handleSaveGeneratedTestCase(testCase.id)}
                                   >
                                     {testCase.status === "accepted" ? "Accepted" : "Accept"}
                                   </button>
@@ -598,8 +602,7 @@ function RequirementsPage() {
                                       testCase.status === "accepted" ||
                                       testCase.status === "rejected"
                                     }
-                                    onClick={() => handleRejectGeneratedTestCase(requirement.requirement_id,
-                                      index)}
+                                    onClick={() => handleRejectGeneratedTestCase(testCase.id)}
                                   >
                                     {testCase.status === "rejected" ? "Rejected" : "Reject"}
                                   </button>

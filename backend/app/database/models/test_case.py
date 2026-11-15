@@ -37,6 +37,17 @@ class TestCase(Base):
         index=True,
     )
 
+    status: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    source: Mapped[str |None] = mapped_column(
+        Text,
+        default="User_Create",
+        nullable=True
+    )
+
     is_archived: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
@@ -47,4 +58,11 @@ class TestCase(Base):
     archived_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
+    )
+
+    generated_from_id: Mapped[int | None] = mapped_column(
+        ForeignKey("generated_test_cases.id"),
+        nullable=True,
+        unique=True,
+        index=True,
     )
