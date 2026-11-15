@@ -1,14 +1,14 @@
 from sqlalchemy.orm import Session
 
 from app.config import OPENAI_MODEL
-from app.database.models.requirement import Requirement, RequirementAnalysis, TestCaseGeneration # DB Models
+from app.database.models.requirement import Requirement, RequirementAnalysis, TestCaseGeneration, GeneratedTestCase # DB Models
 from app.schemas.requirement import (
     RequirementAnalysisLLM, 
     RequirementAnalysisResponse, 
     RequirementBatchAnalysisResponse,
     RequirementBatchAnalysisError,
-    TestCaseGenerationLLM,
-    TestCaseGenerationResponse
+    LLMTestCaseGenerationResponse,
+    GeneratedTestCaseResponse
     ) # Pydantic Schemas
 from app.prompts.prompt_loader import load_prompt
 from app.services.llm_service import generate_structured_response
@@ -103,7 +103,7 @@ def analyse_requirements(
 def ai_generate_test_cases(
     requirement: Requirement,
     db: Session,
-) ->TestCaseGenerationResponse:
+):
     prompt_file = "test_case_generation.yaml"
     prompt = load_prompt(prompt_file)
     
@@ -114,7 +114,7 @@ def ai_generate_test_cases(
     result = generate_structured_response(
         system_prompt=prompt.system_prompt,
         user_prompt=user_prompt,
-        response_model=TestCaseGenerationLLM,
+        response_model=LLMTestCaseGenerationResponse,
         llm_model=OPENAI_MODEL,
     )
 
@@ -134,9 +134,31 @@ def ai_generate_test_cases(
     db.commit()
     db.refresh(generation_record)
 
-    return TestCaseGenerationResponse(
-        requirement_id=requirement.requirement_id,
-        generated_test_cases=generation_record.generated_test_cases, # type: ignore
-        llm_model=generation_record.llm_model,
-        prompt_version=generation_record.prompt_version,
-    )
+    generated_records = []
+
+    for generated in result.parsed.generated_test_cases:
+
+        generated_record = GeneratedTestCase(
+            requirement_db_id=requirement.id,
+            title=generated.title,
+            description=generated.description,
+            prerequisites=generated.prerequisites,
+            steps=generated.steps,
+            expected_result=generated.expected_result,
+            status="generated",
+            llm_model=result.model,
+            prompt_version=prompt.version,
+        )
+
+        db.add(generated_record)
+        generated_records.append(generated_record)
+
+    db.commit()
+
+    for generated_record in generated_records:
+        db.refresh(generated_record)
+
+    return [
+        GeneratedTestCaseResponse.model_validate(record)
+        for record in generated_records
+    ]

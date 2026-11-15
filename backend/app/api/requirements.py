@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
 from app.database.database import get_db
-from app.database.models.requirement import Requirement
+from app.database.models.requirement import Requirement, GeneratedTestCase
+from app.database.models.test_case import TestCase
 from app.schemas.requirement import (
     RequirementCreate,
     RequirementResponse,
@@ -15,9 +16,11 @@ from app.schemas.requirement import (
     RequirementBatchAnalysisRequest,
     RequirementBatchAnalysisError,
     RequirementBatchAnalysisResponse,
-    TestCaseGenerationResponse
+    TestCaseGenerationResponse,   
+    GeneratedTestCaseActionResponse
 )
 from app.services.requirement_ai_service import analyse_requirement, analyse_requirements, ai_generate_test_cases
+from app.api.test_cases import generate_next_test_case_id
 
 router = APIRouter(prefix="/requirements", tags=["requirements"])
 
@@ -225,9 +228,117 @@ def generate_test_cases(
             detail="Requirement not found.",
         )
 
-    result = ai_generate_test_cases(
+    generated_test_cases = ai_generate_test_cases(
         requirement=requirement,
         db=db,
     )
-    
-    return result
+
+    return TestCaseGenerationResponse(
+        requirement_id=requirement.requirement_id,
+        generated_test_cases=generated_test_cases,
+    )
+
+@router.post(
+    "/{generated_test_case_id}/accept",
+    response_model=GeneratedTestCaseActionResponse
+)
+def accept_test_case(
+    generated_test_case_id: int,
+    db: Session = Depends(get_db),
+):
+    generated = (
+        db.query(GeneratedTestCase)
+        .filter(GeneratedTestCase.id == generated_test_case_id)
+        .first()
+    )
+
+    if not generated:
+        raise HTTPException(
+            status_code=404,
+            detail="Generated TC not found.",
+        )
+
+    if generated.status != "generated":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Generated test case is already {generated.status}.",
+        )
+
+    requirement = (
+        db.query(Requirement)
+        .filter(Requirement.id == generated.requirement_db_id)
+        .first()
+    )
+
+    if not requirement:
+        raise HTTPException(
+            status_code=404,
+            detail="Related requirement not found.",
+        )
+
+    test_case_id = generate_next_test_case_id(
+        db,
+        source="ai",
+    )
+
+    new_test_case = TestCase(
+        test_case_id=test_case_id,
+        title=generated.title,
+        description=generated.description,
+        prerequisites=generated.prerequisites,
+        steps=generated.steps,
+        expected_result=generated.expected_result,
+        related_requirement=requirement.requirement_id,
+        source="LLM",
+        status="accepted",
+        generated_from_id=generated.id,
+    )
+
+    generated.status = "accepted"
+
+    db.add(new_test_case)
+    db.commit()
+    db.refresh(new_test_case)
+
+    return GeneratedTestCaseActionResponse(
+        id=generated.id,
+        status="accepted",
+        test_case_id=test_case_id,
+    )
+
+@router.post(
+    "/{generated_test_case_id}/reject",
+    response_model=GeneratedTestCaseActionResponse
+)
+def reject_test_case(
+    generated_test_case_id: int,
+    db: Session = Depends(get_db),
+):
+    generated = (
+        db.query(GeneratedTestCase)
+        .filter(GeneratedTestCase.id == generated_test_case_id)
+        .first()
+    )
+
+    if not generated:
+        raise HTTPException(
+            status_code=404,
+            detail="Generated test case not found.",
+        )
+
+    if generated.status != "generated":
+        raise HTTPException(
+            status_code=409,
+            detail=f"Generated test case is already {generated.status}.",
+        )
+
+    generated.status = "rejected"
+
+    db.commit()
+    db.refresh(generated)
+
+    return GeneratedTestCaseActionResponse(
+        id=generated.id,
+        status="rejected",
+        test_case_id=None,
+    )

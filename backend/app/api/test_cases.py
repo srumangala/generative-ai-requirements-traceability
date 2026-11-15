@@ -18,21 +18,30 @@ router = APIRouter(
     tags=["test-cases"],
 )
 
-def generate_next_test_case_id(db: Session) -> str:
-    test_cases = db.query(TestCase.test_case_id).all()
+def generate_next_test_case_id(db: Session, source="user") -> str:
+
+    if source =="ai":
+        prefix = "TC-AI-"
+    else:
+        prefix = "TC-"
+
+    existing_ids = (
+        db.query(TestCase.test_case_id)
+        .filter(TestCase.test_case_id.like(f"{prefix}%"))
+        .all()
+    )
 
     numbers = []
 
-    for (test_case_id,) in test_cases:
-        if test_case_id.startswith("TC-"):
-            number_part = test_case_id.replace("TC-", "")
+    for (test_case_id,) in existing_ids:
+        number_part = test_case_id.replace(prefix, "")
 
-            if number_part.isdigit():
-                numbers.append(int(number_part))
+        if number_part.isdigit():
+            numbers.append(int(number_part))
 
     next_number = max(numbers, default=0) + 1
 
-    return f"TC-{next_number:03d}"
+    return f"{prefix}{next_number:03d}"
 
 @router.get("", response_model=list[TestCaseResponse])
 def get_test_cases(db: Session = Depends(get_db)):
@@ -64,7 +73,9 @@ def create_test_case(
         prerequisites = test_case.prerequisites,
         steps = test_case.steps,
         expected_result = test_case.expected_result,
-        related_requirement = test_case.related_requirement
+        related_requirement = test_case.related_requirement,
+        status = "created",
+        source="user"
     )
 
     db.add(new_test_case)
@@ -138,7 +149,9 @@ async def upload_test_cases(
             prerequisites=prerequisites,
             steps=steps,
             expected_result=expected_result,
-            related_requirement=related_requirement
+            related_requirement=related_requirement,
+            status = "uploaded",
+            source="user"
         )
 
         db.add(test_case)

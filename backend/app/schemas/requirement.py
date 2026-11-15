@@ -47,18 +47,35 @@ class RequirementBatchAnalysisResponse(BaseModel):
     results: list[RequirementAnalysisResponse]
     errors: list[RequirementBatchAnalysisError]
 
-class TestCaseGenerate(BaseModel):
+# Single test case
+class GenerateTestCase(BaseModel):
     title: str
     description: str
     prerequisites: list[str]
     steps: list[str]
     expected_result: str
 
-class TestCaseGenerationLLM(BaseModel):
-    generated_test_cases: list[TestCaseGenerate]
+# All LLM generated test cases
+class LLMTestCaseGenerationResponse(BaseModel):
+    generated_test_cases: list[GenerateTestCase]
 
+## Response of the ai generation function
+class GeneratedTestCaseResponse(BaseModel):
+    id: int
+    title: str
+    description: str
+    prerequisites: list[str]
+    steps: list[str]
+    expected_result: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+## Response passed to the frontend
 class TestCaseGenerationResponse(BaseModel):
     requirement_id: str
-    generated_test_cases: list[TestCaseGenerate]
-    llm_model: str
-    prompt_version: str
+    generated_test_cases: list[GeneratedTestCaseResponse]
+
+class GeneratedTestCaseActionResponse(BaseModel):
+    id: int
+    status: str
+    test_case_id: str | None = None
