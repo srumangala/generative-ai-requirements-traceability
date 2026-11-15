@@ -59,3 +59,10 @@ class TestCase(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+
+    generated_from_id: Mapped[int | None] = mapped_column(
+        ForeignKey("generated_test_cases.id"),
+        nullable=True,
+        unique=True,
+        index=True,
+    )

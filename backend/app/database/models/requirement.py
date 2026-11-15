@@ -80,3 +80,62 @@ class TestCaseGeneration(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+
+class GeneratedTestCase(Base):
+    __tablename__ = "generated_test_cases"
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True,
+        index=True,
+    )
+
+    requirement_db_id: Mapped[int] = mapped_column(
+        ForeignKey("requirements.id"),
+        index=True,
+    )
+
+    title: Mapped[str] = mapped_column(
+        String(255)
+    )
+
+    description: Mapped[str] = mapped_column(
+        Text
+    )
+
+    prerequisites: Mapped[list[str]] = mapped_column(
+        JSON
+    )
+
+    steps: Mapped[list[str]] = mapped_column(
+        JSON
+    )
+
+    expected_result: Mapped[str] = mapped_column(
+        Text
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="generated",
+        server_default="generated",
+    )
+
+    llm_model: Mapped[str] = mapped_column(
+        String(100)
+    )
+
+    prompt_version: Mapped[str] = mapped_column(
+        String(50)
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
