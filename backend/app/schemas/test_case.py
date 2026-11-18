@@ -7,8 +7,6 @@ class TestCaseCreate(BaseModel):
     steps: list[str]
     expected_result: str
     related_requirement: str
-    status: str
-    source: str
 
 class TestCaseResponse(BaseModel):
     id: int

@@ -7,8 +7,8 @@ function TestCasesPage() {
   const [testCases, setTestCases] = useState([]);
   const [newTestCaseTitle, setNewTestCaseTitle] = useState("");
   const [newTestCaseDescription, setNewTestCaseDescription] = useState("");
-  const [newTestCasePreRequisites, setNewTestCasePreRequisites] = useState([""]);
-  const [newTestCaseSteps, setNewTestCaseSteps] = useState([""]);
+  const [newTestCasePreRequisites, setNewTestCasePreRequisites] = useState("");
+  const [newTestCaseSteps, setNewTestCaseSteps] = useState("");
   const [newTestCaseExpectedResult, setNewTestCaseExpectedResult] = useState("");
   const [newTestCaseRelatedRequirement, setNewTestCaseRelatedRequirement] = useState("");
   const [expandedTestCaseId, setExpandedTestCaseId] = useState(null);
@@ -24,8 +24,15 @@ function TestCasesPage() {
       body: JSON.stringify({
         title: newTestCaseTitle,
         description: newTestCaseDescription,
-        prerequisites: newTestCasePreRequisites,
-        steps: newTestCaseSteps,
+        prerequisites: newTestCasePreRequisites
+          .split(/,|\n/)
+          .map((item) => item.trim())
+          .filter(Boolean),
+
+        steps: newTestCaseSteps
+          .split(/,|\n/)
+          .map((item) => item.trim())
+          .filter(Boolean),
         expected_result: newTestCaseExpectedResult,
         related_requirement: newTestCaseRelatedRequirement,
       }),
@@ -33,6 +40,8 @@ function TestCasesPage() {
 
     if (!response.ok) {
       const errorData = await response.json();
+
+      console.log("FastAPI validation error:", errorData);
 
       setTestCaseError(
         errorData.detail || "Failed to create test case."
@@ -387,8 +396,8 @@ function TestCasesPage() {
             <input
               type="text"
               placeholder="Give the related requirement (if any)..."
-              value={newTestCaseExpectedResult}
-              onChange={(event) => setNewTestCaseExpectedResult(event.target.value)}
+              value={newTestCaseRelatedRequirement}
+              onChange={(event) => setNewTestCaseRelatedRequirement(event.target.value)}
             />
           </div>
 
@@ -398,8 +407,8 @@ function TestCasesPage() {
             disabled={
               !newTestCaseTitle.trim() ||
               !newTestCaseDescription.trim() ||
-              !newTestCasePreRequisites.trim() ||
-              !newTestCaseSteps.trim() ||
+              !newTestCasePreRequisites ||
+              !newTestCaseSteps ||
               !newTestCaseExpectedResult.trim() ||
               !newTestCaseRelatedRequirement.trim()
             }
